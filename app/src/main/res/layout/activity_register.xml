@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true"
+    android:background="#fff">
+
+    <TextView
+        android:id="@+id/back_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="15dp"
+        android:text="返回"
+        android:textColor="#000"
+        android:textSize="18sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="15dp"
+        android:paddingEnd="15dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:text="手机号："
+                style="@style/LabelStyle" />
+
+            <android.support.v7.widget.AppCompatEditText
+                android:id="@+id/register_account_et"
+                android:hint="请输您的手机号"
+                style="@style/InputStyle" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:text="验证码："
+                style="@style/LabelStyle" />
+
+            <android.support.v7.widget.AppCompatEditText
+                android:id="@+id/register_code_et"
+                android:hint="请输验证码"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                style="@style/InputStyle" />
+
+            <Button
+                android:id="@+id/register_get_code_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="获取验证码"/>
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:text="密码："
+                style="@style/LabelStyle" />
+
+            <android.support.v7.widget.AppCompatEditText
+                android:id="@+id/register_pwd_et"
+                android:hint="请输您的密码"
+                style="@style/InputStyle" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/register_confirm_btn"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_margin="20dp"
+            android:text="注册" />
+
+    </LinearLayout>
+
+</LinearLayout>

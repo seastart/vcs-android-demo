@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.MeetingActivity">
+
+    <com.ook.android.GLCameraView
+        android:id="@+id/cameraSurfaceView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/window_rcview"
+        android:layout_marginTop="22dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:overScrollMode="never"
+        app:layoutManager="android.support.v7.widget.GridLayoutManager"
+        app:spanCount="2"
+        android:paddingLeft="3dp"
+        android:paddingRight="3dp" />
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/camera_switch_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="后置"
+            android:focusable="true"
+            android:layout_marginBottom="10dp"
+            android:layout_marginEnd="15dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <Button
+            android:id="@+id/camera_light_btn"
+            android:focusable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="开闪光灯"
+            android:layout_marginBottom="5dp"
+            app:layout_constraintBottom_toTopOf="@+id/camera_switch_btn"
+            app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
+
+        <Button
+            android:id="@+id/close_self_video_btn"
+            android:focusable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="关闭自己的视频"
+            android:layout_marginBottom="5dp"
+            app:layout_constraintBottom_toTopOf="@+id/camera_light_btn"
+            app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
+
+        <Button
+            android:id="@+id/close_self_audio_btn"
+            android:focusable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="关闭自己的音频"
+            android:layout_marginBottom="5dp"
+            app:layout_constraintBottom_toTopOf="@+id/close_self_video_btn"
+            app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
+
+        <Button
+            android:id="@+id/send_msg_btn"
+            android:focusable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="发送广播消息"
+            android:layout_marginBottom="5dp"
+            app:layout_constraintBottom_toTopOf="@+id/close_self_audio_btn"
+            app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
+
+        <Button
+            android:id="@+id/clear_msg_btn"
+            android:focusable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="清空消息"
+            android:layout_marginBottom="5dp"
+            app:layout_constraintBottom_toTopOf="@+id/send_msg_btn"
+            app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
+
+    </android.support.constraint.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/custom_msg_tv"
+        android:gravity="bottom"
+        android:textColor="#FFFC8B"
+        android:scrollbars="vertical"
+        android:layout_marginBottom="70dp"
+        android:layout_marginStart="30dp"
+        android:layout_gravity="bottom"
+        android:layout_width="220dp"
+        android:layout_height="150dp"
+        android:lineSpacingExtra="10dp"/>
+
+    <TextView
+        android:id="@+id/upload_tv"
+        android:layout_gravity="bottom"
+        android:gravity="bottom"
+        android:layout_marginStart="30dp"
+        android:layout_marginBottom="15dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/los_tv"
+        android:layout_gravity="bottom"
+        android:gravity="bottom"
+        android:layout_marginStart="30dp"
+        android:layout_marginBottom="50dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/client_tv"
+        android:textColor="#fff"
+        android:layout_margin="5dp"
+        android:layout_gravity="bottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</FrameLayout>
