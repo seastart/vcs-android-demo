@@ -14,11 +14,54 @@ public class MeetingBean extends BaseBean {
     private long created_at;
     private UserBean account;
     private RoomBean room;
-    private String host;
-    private String port;
     private String session;
     private String wb_host;
     private boolean isInvite = false;
+    private String meeting_host;
+    private int meeting_port;
+    private String stream_host;
+    private int stream_port;
+    private String sdk_no;
+
+    public String getMeeting_host() {
+        return meeting_host;
+    }
+
+    public void setMeeting_host(String meeting_host) {
+        this.meeting_host = meeting_host;
+    }
+
+    public int getMeeting_port() {
+        return meeting_port;
+    }
+
+    public void setMeeting_port(int meeting_port) {
+        this.meeting_port = meeting_port;
+    }
+
+    public String getStream_host() {
+        return stream_host;
+    }
+
+    public void setStream_host(String stream_host) {
+        this.stream_host = stream_host;
+    }
+
+    public int getStream_port() {
+        return stream_port;
+    }
+
+    public void setStream_port(int stream_port) {
+        this.stream_port = stream_port;
+    }
+
+    public String getSdk_no() {
+        return sdk_no;
+    }
+
+    public void setSdk_no(String sdk_no) {
+        this.sdk_no = sdk_no;
+    }
 
     public boolean isInvite() {
         return isInvite;
@@ -34,22 +77,6 @@ public class MeetingBean extends BaseBean {
 
     public void setWb_host(String wb_host) {
         this.wb_host = wb_host;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public String getPort() {
-        return port;
-    }
-
-    public void setPort(String port) {
-        this.port = port;
     }
 
     public String getSession() {

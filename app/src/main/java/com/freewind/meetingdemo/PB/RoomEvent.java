@@ -85,4 +85,9 @@ public interface RoomEvent {
      * @param level 0：正常码率；-1：1/2码率；-2：1/4码率；1000：码率自适应开始工作
      */
     void onXBitrate(int level);
+
+    /**
+     * 我的信息同步事件
+     */
+    void onNotifyMyAccount(RoomServer.MyAccountNotify notify);
 }

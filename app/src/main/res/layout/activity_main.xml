@@ -59,7 +59,7 @@
 
         <android.support.v7.widget.AppCompatEditText
             android:id="@+id/room_no_et"
-            android:text="915105013000"
+            android:text="ea71f378ddb843dd9653446557bbd225"
             android:hint="输入房间号"
             android:inputType="text"
             style="@style/InputStyle" />

@@ -22,9 +22,11 @@ import com.freewind.meetingdemo.MyApplication;
 import com.freewind.meetingdemo.PB.Models;
 import com.freewind.meetingdemo.PB.RoomClient;
 import com.freewind.meetingdemo.PB.RoomEvent;
+import com.freewind.meetingdemo.PB.RoomServer;
 import com.freewind.meetingdemo.PB.VcsException;
 import com.freewind.meetingdemo.R;
 import com.freewind.meetingdemo.adapter.WindowAdapter;
+import com.freewind.meetingdemo.bean.MeetingBean;
 import com.freewind.meetingdemo.bean.MemberBean;
 import com.freewind.meetingdemo.common.Constants;
 import com.freewind.meetingdemo.common.UserConfig;
@@ -82,11 +84,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private boolean mWorking = false;
     private Thread mThread;
 
-    public static final String IP_ADDR = "ip_add";
-    public static final String PORT = "port";
-    public static final String ROOM_NUMBER = "room_number";
     public static final String DEBUG_ADDR = "debug_addr";
-    public static final String SESSION = "session";
     public static final String DEBUG_SWITCH = "debug_switch";
     public static final String AGC = "agc";
     public static final String AEC = "aec";
@@ -97,7 +95,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     public static final String SAMPLE_RATE = "sample_rate";
     public static final String HARD_DECODER = "hard_decoder";
     public static final String AUTO_BITRATE = "auto_bitrate";
+    public static final String ROOM_INFO = "room_info";
 
+    private MeetingBean meetingBean;
 
     private boolean closeOtherAudio;//关闭他人音频模式
     private boolean closeOtherVideo;//关闭他人视频模式
@@ -120,66 +120,84 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
     @Override
     public void onEnter(int result) {
+        Log.e("444444444444", "111");
 
     }
 
     @Override
     public void onExit(int result) {
+        Log.e("444444444444", "222");
 
     }
 
     @Override
     public void onNotifyRoom(Models.Room room) {
-
+        Log.e("444444444444", apiCtrl.VCS_getVersion());
     }
 
     @Override
     public void onNotifyAccount(Models.Account account) {
+        Log.e("444444444444", "33");
 
     }
 
     @Override
     public void onNotifyKickout() {
+        Log.e("444444444444", "44");
 
     }
 
     @Override
     public void onNotifyEnter(Models.Account account) {
+        Log.e("444444444444", "555");
 
     }
 
     @Override
     public void onNotifyExit(Models.Account account) {
+        Log.e("444444444444", "666");
 
     }
 
     @Override
     public void onNotifyBegin(String roomId) {
+        Log.e("444444444444", "777");
 
     }
 
     @Override
     public void onNotifyEnd(String roomId) {
+        Log.e("444444444444", "888");
 
     }
 
     @Override
     public void onFrame(byte[] ost, byte[] tnd, byte[] trd, int width, int height, int fourcc, int clientId) {
+        Log.e("444444444444", "client " + clientId);
 
     }
 
     @Override
     public void onSendInfo(int speed, int delay) {
+        Log.e("444444444444", speed + "");
 
     }
 
     @Override
     public void onRecvInfo(String s) {
+        Log.e("444444444444", s + "   sss");
 
     }
 
     @Override
     public void onXBitrate(int level) {
+        Log.e("444444444444", "1414");
+
+    }
+
+    @Override
+    public void onNotifyMyAccount(RoomServer.MyAccountNotify notify) {
+        Log.e("444444444444", "1515");
 
     }
 
@@ -255,11 +273,12 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         clearMsgBtn.setOnClickListener(this);
 
         Intent intent = getIntent();
-        addr = intent.getStringExtra(IP_ADDR);
-        port = Integer.valueOf(intent.getStringExtra(PORT));
-        roomName = intent.getStringExtra(ROOM_NUMBER);
+        meetingBean = (MeetingBean) intent.getSerializableExtra(ROOM_INFO);
+        addr = meetingBean.getStream_host();
+        port = meetingBean.getStream_port();
+        roomName = meetingBean.getSdk_no();
         trackServer = intent.getStringExtra(DEBUG_ADDR);
-        szSessionId = intent.getStringExtra(SESSION);
+        szSessionId = meetingBean.getSession();
         openDebug = intent.getBooleanExtra(DEBUG_SWITCH, false);
         agc = Integer.valueOf(intent.getStringExtra(AGC));
         aec = Integer.valueOf(intent.getStringExtra(AEC));
@@ -277,6 +296,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
         cameraSurfaceView.setOutlineProvider(new TextureVideoViewOutlineProvider(DisplayUtil.getInstance().dip2px(4)));
         cameraSurfaceView.setClipToOutline(true);
+
     }
 
     //初始化API
@@ -299,7 +319,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         }
         Log.e("kkp", apiCtrl.VCS_getVersion());
 
-        myClientId = Integer.valueOf(UserConfig.getUserInfo().getData().getRoom().getSdk_no());
+        myClientId = Integer.valueOf(meetingBean.getSdk_no());
 
         clientTv.setText(myClientId + "");
 
@@ -314,21 +334,22 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         roomClient.setAccount(accountBuilder.build());
 
         Models.Room.Builder roomBuilder = Models.Room.newBuilder();
-        roomBuilder.setId(UserConfig.getUserInfo().getData().getRoom().getId());
+        roomBuilder.setId(meetingBean.getRoom().getId());
         roomBuilder.setSdkNo(myClientId + "");
         roomClient.setRoom(roomBuilder.build());
 
-        roomClient.setStreamAddr(addr);
-        roomClient.setStreamPort(port);
-//        roomClient.setMeetingAddr();
-//        roomClient.setMeetingPort();
+        roomClient.setSessionId(meetingBean.getSession());
+        roomClient.setStreamAddr(meetingBean.getStream_host());
+        roomClient.setStreamPort(meetingBean.getStream_port());
+        roomClient.setMeetingPort(meetingBean.getMeeting_port());
+        roomClient.setMeetingAddr(meetingBean.getMeeting_host());
 
         //设置事件回调
-        apiCtrl.VCS_SetRoomEvent(room, this, this);
+//        apiCtrl.VCS_SetRoomEvent(room, this, this);
         //设置错误监听事件
-        apiCtrl.VCS_SetEncodeEvent(this);
+//        apiCtrl.VCS_SetEncodeEvent(this);
         //设置数据回调
-        apiCtrl.VCS_SetPicDataEvent(room, this, this);
+//        apiCtrl.VCS_SetPicDataEvent(room, this, this);
         //设置系统AGC
         apiCtrl.VCS_SetOutputAgc(room, agc);
         //设置系统AEC
@@ -375,11 +396,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         }
 
 
-        //加入房间
-        if (apiCtrl.VCS_JoniRoom(room, myClientId) < VCS_EVENT_TYPE.VCS_R_OK) {
-            showToast("进入房间失败");
-            return;
-        }
+//        //加入房间
+//        if (apiCtrl.VCS_JoniRoom(room, myClientId) < VCS_EVENT_TYPE.VCS_R_OK) {
+//            showToast("进入房间失败");
+//            return;
+//        }
 
         if (autoBitrate){
             apiCtrl.VCS_SetRoomXBitrate(room, 5);//0-关闭自适应；开启[>=3] 建议5秒 在移动网络情况下 建议>=5

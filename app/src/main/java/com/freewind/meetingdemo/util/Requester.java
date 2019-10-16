@@ -28,9 +28,9 @@ public class Requester {
      * @param password 视频会议密码(如果会议启用密码)
      */
     public static void enterMeeting(String room_no, String password, final HttpCallBack<RoomInfoBean> callBack) {
-        String url = Constants.API_HOST + "room/enter";
+        String url = Constants.API_HOST + "room/enter-room";
         RequestParams params = new RequestParams();
-        params.put("room_no", room_no);
+        params.put("account_id", room_no);
         if (!password.isEmpty()) {
             params.put("password", password);
         }
@@ -47,9 +47,9 @@ public class Requester {
     public static void login(String mobile, String password, String code, final HttpCallBack<UserInfoBean> callBack) {
         String url = Constants.API_HOST + "account/login";
         RequestParams params = new RequestParams();
-        params.put("name", mobile);
+        params.put("loginname", mobile);
         params.put("password", MD5Util.MD5Encode(password));
-        params.put("odm", 1);
+        params.put("dev_type", 2);
         HttpHelper.executePost(UserInfoBean.class, url, params, callBack);
     }
 

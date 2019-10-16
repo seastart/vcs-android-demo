@@ -24,8 +24,17 @@ public class UdpSocket {
 
     public void send(Packet packet,InetAddress address,int port) throws IOException {
         byte[] buf=packet.toBytesArray();
-        DatagramPacket p=new DatagramPacket(buf,buf.length,address,port);
-        socket.send(p);
+        final DatagramPacket p=new DatagramPacket(buf,buf.length,address,port);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    socket.send(p);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     public void send(DatagramPacket dpacket) throws IOException {
@@ -35,7 +44,8 @@ public class UdpSocket {
     public DatagramPacket receive() throws IOException {
         byte[] buf=new byte[10240];
         DatagramPacket p=new DatagramPacket(buf,buf.length);
-        socket.receive(p);
+        if (socket != null && !socket.isClosed())
+            socket.receive(p);
         return p;
     }
 }

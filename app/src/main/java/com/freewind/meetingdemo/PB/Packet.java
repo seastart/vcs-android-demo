@@ -150,11 +150,11 @@ public class Packet {
 
         Packet packet=new Packet();
         packet.setPacketType(Models.PacketType.values()[bb.getShort()]);
-        packet.setCommand(Models.Command.values()[bb.getShort()]);
+//        packet.setCommand(Models.Command.values()[bb.getShort()]);
         packet.setMajor(bb.getShort());
         packet.setMinor(bb.getShort());
         int dataLen=bb.getShort();
-        packet.setResult(Models.Result.values()[bb.getShort()]);
+//        packet.setResult(Models.Result.values()[bb.getShort()]);
 
         if(len-HEADER_SIZE<dataLen){
             return null;

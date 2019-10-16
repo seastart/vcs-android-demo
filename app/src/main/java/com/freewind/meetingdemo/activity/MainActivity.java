@@ -83,11 +83,7 @@ public class MainActivity extends AppCompatActivity {
                             return;
                         }
                         startActivity(new Intent(MainActivity.this, MeetingActivity.class)
-                                .putExtra(MeetingActivity.IP_ADDR, data.getData().getHost())
-                                .putExtra(MeetingActivity.PORT, data.getData().getPort())
-                                .putExtra(MeetingActivity.ROOM_NUMBER, data.getData().getRoom().getSdk_no())
                                 .putExtra(MeetingActivity.DEBUG_ADDR, Objects.requireNonNull(debugAddrEt.getText()).toString())
-                                .putExtra(MeetingActivity.SESSION, data.getData().getSession())
                                 .putExtra(MeetingActivity.DEBUG_SWITCH, debugCheckBox.isChecked())
                                 .putExtra(MeetingActivity.AGC, Objects.requireNonNull(agcEt.getText()).toString())
                                 .putExtra(MeetingActivity.AEC, Objects.requireNonNull(aecEt.getText()).toString())
@@ -98,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
                                 .putExtra(MeetingActivity.CLOSE_OTHER_AUDIO, closeOtherAudioBox.isChecked())
                                 .putExtra(MeetingActivity.HARD_DECODER, hardDecoderBox.isChecked())
                                 .putExtra(MeetingActivity.AUTO_BITRATE, autoBox.isChecked())
+                                .putExtra(MeetingActivity.ROOM_INFO, data.getData())
                         );
                     }
 

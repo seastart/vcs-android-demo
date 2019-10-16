@@ -27,6 +27,16 @@ public class UserBean extends BaseBean {
     private String room_no;
     private String portrait;
 
+    private RoomBean room;
+
+    public RoomBean getRoom() {
+        return room;
+    }
+
+    public void setRoom(RoomBean room) {
+        this.room = room;
+    }
+
     public String getId() {
         return id;
     }

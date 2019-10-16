@@ -70,9 +70,13 @@ public class RoomClient implements IVCSCB {
         return meetingAddr;
     }
 
-    public void setMeetingAddr(String meetingAddr) throws UnknownHostException {
+    public void setMeetingAddr(String meetingAddr)  {
         this.meetingAddr = meetingAddr;
-        this.inetMeetingAddress=InetAddress.getByName(meetingAddr);
+        try {
+            this.inetMeetingAddress=InetAddress.getByName(meetingAddr);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
     public int getMeetingPort() {
@@ -159,6 +163,7 @@ public class RoomClient implements IVCSCB {
             roomHandle=-1;
         }
         if(udpSocket!=null){
+
             udpSocket.close();
             udpSocket=null;
         }
@@ -166,13 +171,16 @@ public class RoomClient implements IVCSCB {
         if(heartbeatWorker!=null){
             try {
                 heartbeatWorker.join();
-            }catch (InterruptedException e){}
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             heartbeatWorker=null;
         }
         if(receiveWorker!=null){
             try {
                 receiveWorker.join();
             } catch (InterruptedException e) {
+                e.printStackTrace();
             }
             receiveWorker=null;
         }
@@ -188,7 +196,8 @@ public class RoomClient implements IVCSCB {
         b.setRoom(this.getRoom());
         b.setToken(this.getSessionId());
         Packet pkt=new Packet(Models.Command.CMD_Room_Enter,b.build().toByteArray());
-        udpSocket.send(pkt,inetMeetingAddress,meetingPort);
+        if (udpSocket != null)
+            udpSocket.send(pkt,inetMeetingAddress,meetingPort);
     }
 
     /**
@@ -424,7 +433,7 @@ public class RoomClient implements IVCSCB {
         @Override
         public void run() {
             int sec=0;
-            while (true){
+            while (active){
                 if(sec>=10) {
                     try {
                         if (entered) {
@@ -491,6 +500,8 @@ public class RoomClient implements IVCSCB {
             onNotifyExit(packet,address,port);
         }else if(cmd== Models.Command.CMD_Room_NotifyKickout){
             onNotifyKickout(packet,address,port);
+        }else if(cmd== Models.Command.CMD_Room_NotifyMyAccount){
+            onNotifyMyAccount(packet,address,port);
         }
     }
 
@@ -505,10 +516,24 @@ public class RoomClient implements IVCSCB {
 
     private void onNotifyAccount(Packet packet,InetAddress address,int port) throws InvalidProtocolBufferException {
         RoomServer.AccountNotify pb= RoomServer.AccountNotify.parseFrom(packet.getData());
-        if (pb.getAccount().getId().equals(this.account.getId())){
-            this.setAccount(pb.getAccount());//更新本地的信息
-        }
+//        if (pb.getAccount().getId().equals(this.account.getId())){
+//            this.setAccount(pb.getAccount());//更新本地的信息
+//        }
         roomEvent.onNotifyAccount(pb.getAccount());
+    }
+    private void onNotifyMyAccount(Packet packet,InetAddress address,int port) throws InvalidProtocolBufferException {
+        RoomServer.MyAccountNotify pb= RoomServer.MyAccountNotify.parseFrom(packet.getData());
+//        if (pb.getAccount().getId().equals(this.account.getId())){
+        Models.Account.Builder account = this.getAccount().toBuilder();
+        if (pb.hasVideoState()){
+            account.setVideoState(pb.getVideoState());
+        }
+        if (pb.hasAudioState()){
+            account.setAudioState(pb.getAudioState());
+        }
+            this.setAccount(account.build());//更新本地的信息
+//        }
+        roomEvent.onNotifyMyAccount(pb);
     }
     private void onNotifyRoom(Packet packet,InetAddress address,int port) throws InvalidProtocolBufferException {
         RoomServer.RoomNotify pb= RoomServer.RoomNotify.parseFrom(packet.getData());

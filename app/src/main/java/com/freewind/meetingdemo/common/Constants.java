@@ -12,9 +12,9 @@ public class Constants {
 
     //服务器相关配置
 //    public static String SERVER_HOST = "http://101.37.67.56/meeting/";
-    public static String SERVER_HOST = "http://103.219.32.162:5000/meeting/";
+    public static String SERVER_HOST = "http://103.219.32.162:5100/";
 
-    public static String API_VERSION = "vcs";
+    public static String API_VERSION = "vcs/";
     public static String API_HOST = SERVER_HOST + API_VERSION;
 
     public static final String MSG_NET_ERROR = "服务器开小差啦，请重试";
