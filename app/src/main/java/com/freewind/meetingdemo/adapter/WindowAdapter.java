@@ -32,19 +32,12 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
     private HashMap<String, MyViewHolder> holders;
     private Context context;
 
-    int width, height;
-
     public HashMap<String, MyViewHolder> getHolders() {
         return holders == null ? new HashMap<String, MyViewHolder>() : holders;
     }
 
     public List<MemberBean> getMemberList() {
         return memberList;
-    }
-
-    public void setWidthAndHeight(int width, int height) {
-        this.width = width;
-        this.height = height;
     }
 
     @Override
@@ -92,7 +85,6 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         final MemberBean memberBean = memberList.get(position);
 
 //        holder.meetingGLSurfaceView.setScaleType(CENTERCROP);
-        holder.meetingGLSurfaceView.update(height, width);
         holder.nameTv.setText(memberBean.getClientId());
 
         if (memberBean.isCloseVideo()){

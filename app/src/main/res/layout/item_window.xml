@@ -2,8 +2,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/item_fl"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="210dp"
-    android:layout_height="120dp">
+    android:layout_width="224dp"
+    android:layout_height="126dp">
 
     <com.ook.android.showview.MeetingGLSurfaceView
         android:id="@+id/gl_view"

@@ -67,26 +67,6 @@
             app:layout_constraintBottom_toTopOf="@+id/close_self_video_btn"
             app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
 
-        <Button
-            android:id="@+id/send_msg_btn"
-            android:focusable="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="发送广播消息"
-            android:layout_marginBottom="5dp"
-            app:layout_constraintBottom_toTopOf="@+id/close_self_audio_btn"
-            app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
-
-        <Button
-            android:id="@+id/clear_msg_btn"
-            android:focusable="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="清空消息"
-            android:layout_marginBottom="5dp"
-            app:layout_constraintBottom_toTopOf="@+id/send_msg_btn"
-            app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
-
     </android.support.constraint.ConstraintLayout>
 
     <TextView
