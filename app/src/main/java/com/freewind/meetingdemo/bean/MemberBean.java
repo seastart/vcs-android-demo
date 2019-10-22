@@ -7,57 +7,60 @@
 // ///////////////////////////////////////////////////////////////////////////
 package com.freewind.meetingdemo.bean;
 
+import com.freewind.vcs.Models;
+
 import java.io.Serializable;
 
 /**
  * 会议成员
  */
 public class MemberBean implements Serializable {
-    private boolean mute = false;
-    private boolean closeVideo = false;
+    private Models.DeviceState mute;
+    private Models.DeviceState closeVideo;
+    private boolean closeOtherVideo;//本地是否关闭视频
+    private boolean closeOtherAudio;//本地是否关闭音频
     private String clientId;
-    private boolean isMuteMode = false;
-    private int width;
-    private int height;
+    private String accountId;
 
-    public int getWidth() {
-        return width;
+    public boolean isCloseOtherAudio() {
+        return closeOtherAudio;
     }
 
-    public void setWidth(int width) {
-        this.width = width;
+    public void setCloseOtherAudio(boolean closeOtherAudio) {
+        this.closeOtherAudio = closeOtherAudio;
     }
 
-    public int getHeight() {
-        return height;
+    public boolean isCloseOtherVideo() {
+        return closeOtherVideo;
     }
 
-    public void setHeight(int height) {
-        this.height = height;
-    }
-
-    public void setMuteMode(boolean muteMode) {
-        isMuteMode = muteMode;
-    }
-
-    public boolean isMuteMode() {
-        return isMuteMode;
+    public void setCloseOtherVideo(boolean closeOtherVideo) {
+        this.closeOtherVideo = closeOtherVideo;
     }
 
     public boolean isMute() {
+        return mute == Models.DeviceState.DS_Closed || mute == Models.DeviceState.DS_Disabled;
+    }
+
+    public void setMute(Models.DeviceState deviceState) {
+        this.mute = deviceState;
+    }
+
+    //是否关闭视频 true 关闭
+    public boolean isCloseVideo() {
+        return closeVideo == Models.DeviceState.DS_Closed || closeVideo == Models.DeviceState.DS_Disabled;
+    }
+
+    public Models.DeviceState getMute() {
         return mute;
     }
 
-    public void setMute(boolean mute) {
-        this.mute = mute;
+    public Models.DeviceState getCloseVideo() {
+        return closeVideo;
     }
 
-    public boolean isCloseVideo() {
-        return isMuteMode || closeVideo;
-    }
-
-    public void setCloseVideo(boolean closeVideo) {
-        this.closeVideo = closeVideo;
+    public void setCloseVideo(Models.DeviceState deviceState) {
+        this.closeVideo = deviceState;
     }
 
     public String getClientId() {
@@ -66,5 +69,13 @@ public class MemberBean implements Serializable {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
     }
 }

@@ -2,8 +2,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/item_fl"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="224dp"
-    android:layout_height="126dp">
+    android:layout_width="264dp"
+    android:layout_height="148.5dp">
 
     <com.ook.android.showview.MeetingGLSurfaceView
         android:id="@+id/gl_view"
@@ -13,15 +13,6 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/id_tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="5dp"
-        android:textColor="#fff"
-        android:textSize="16sp" />
-
-    <TextView
         android:id="@+id/self_close_tv"
         android:visibility="gone"
         android:layout_width="match_parent"
@@ -29,7 +20,7 @@
         android:gravity="center"
         android:background="#0F5E59"
         android:textColor="#EBFA98"
-        android:text="他自己关闭了视频"/>
+        android:text="远端关闭了视频"/>
 
     <TextView
         android:id="@+id/other_close_tv"
@@ -39,7 +30,7 @@
         android:background="#202064"
         android:gravity="center"
         android:textColor="#EBFA98"
-        android:text="你屏蔽了他的视频"/>
+        android:text="本地屏蔽了他的视频"/>
 
     <ImageView
         android:id="@+id/self_mute_iv"
@@ -66,13 +57,46 @@
         android:id="@+id/mute_btn"
         android:layout_gravity="bottom"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:text="打开静音"/>
 
     <Button
         android:id="@+id/close_video_btn"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:text="关闭视频"/>
+
+    <Button
+        android:id="@+id/kick_out_btn"
+        android:layout_gravity="end"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:text="踢出"/>
+
+
+    <Button
+        android:id="@+id/host_close_video_btn"
+        android:layout_gravity="end"
+        android:layout_marginTop="45dp"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:text="主持人关闭视频"/>
+
+    <Button
+        android:id="@+id/host_close_audio_btn"
+        android:layout_gravity="end"
+        android:layout_marginTop="90dp"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:text="主持人关闭音频"/>
+
+    <TextView
+        android:id="@+id/id_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="5dp"
+        android:textColor="#fff"
+        android:textSize="16sp" />
 
 </FrameLayout>

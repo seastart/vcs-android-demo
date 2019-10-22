@@ -67,10 +67,12 @@
             app:layout_constraintBottom_toTopOf="@+id/close_self_video_btn"
             app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
 
+
     </android.support.constraint.ConstraintLayout>
 
     <TextView
         android:id="@+id/custom_msg_tv"
+        android:visibility="gone"
         android:gravity="bottom"
         android:textColor="#FFFC8B"
         android:scrollbars="vertical"
