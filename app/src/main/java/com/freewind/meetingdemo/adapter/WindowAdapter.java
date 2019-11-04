@@ -14,7 +14,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -171,6 +170,20 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
             }
         });
 
+        holder.highBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MeetingActivity)context).useHighStream(Integer.valueOf(memberBean.getClientId()));
+            }
+        });
+
+        holder.lowBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MeetingActivity)context).useLowStream(Integer.valueOf(memberBean.getClientId()));
+            }
+        });
+
         holders.put(memberBean.getClientId(), holder);
     }
 
@@ -181,15 +194,13 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public MeetingGLSurfaceView meetingGLSurfaceView;
-        FrameLayout itemFl;
         TextView nameTv;
         ImageView selfMuteIv, otherMuteIv;
         TextView selfCloseTv, otherCloseTv;
-        Button closeVideoBtn, muteBtn, kickBtn, hostCloseVideoBtn, hostCloseAudioBtn;
+        Button closeVideoBtn, muteBtn, kickBtn, hostCloseVideoBtn, hostCloseAudioBtn, highBtn, lowBtn;
 
         MyViewHolder(View convertView) {
             super(convertView);
-            itemFl = convertView.findViewById(R.id.item_fl);
             meetingGLSurfaceView = convertView.findViewById(R.id.gl_view);
             nameTv = convertView.findViewById(R.id.id_tv);
             selfMuteIv = convertView.findViewById(R.id.self_mute_iv);
@@ -201,6 +212,8 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
             kickBtn = convertView.findViewById(R.id.kick_out_btn);
             hostCloseVideoBtn = convertView.findViewById(R.id.host_close_video_btn);
             hostCloseAudioBtn = convertView.findViewById(R.id.host_close_audio_btn);
+            highBtn = convertView.findViewById(R.id.high_btn);
+            lowBtn = convertView.findViewById(R.id.low_btn);
         }
     }
 }

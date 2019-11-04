@@ -40,6 +40,7 @@
         <Button
             android:id="@+id/camera_light_btn"
             android:focusable="true"
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="开闪光灯"
@@ -67,6 +68,25 @@
             app:layout_constraintBottom_toTopOf="@+id/close_self_video_btn"
             app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
 
+        <Button
+            android:id="@+id/not_recv_audio_btn"
+            android:focusable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="不接收所有人音频"
+            android:layout_marginBottom="5dp"
+            app:layout_constraintBottom_toTopOf="@+id/close_self_audio_btn"
+            app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
+
+        <Button
+            android:id="@+id/not_recv_video_btn"
+            android:focusable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="不接收所有人视频"
+            android:layout_marginBottom="5dp"
+            app:layout_constraintBottom_toTopOf="@+id/not_recv_audio_btn"
+            app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
 
     </android.support.constraint.ConstraintLayout>
 
@@ -89,6 +109,7 @@
         android:gravity="bottom"
         android:layout_marginStart="30dp"
         android:layout_marginBottom="15dp"
+        android:textColor="#FFE408"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
@@ -98,6 +119,7 @@
         android:gravity="bottom"
         android:layout_marginStart="30dp"
         android:layout_marginBottom="50dp"
+        android:textColor="#ff0000"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 

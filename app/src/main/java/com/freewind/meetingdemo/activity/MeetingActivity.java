@@ -24,6 +24,7 @@ import com.freewind.vcs.Models;
 import com.freewind.vcs.RoomClient;
 import com.freewind.vcs.RoomEvent;
 import com.freewind.vcs.RoomServer;
+import com.freewind.vcs.StreamChannel;
 import com.ook.android.CheckPermissionsUtil;
 import com.ook.android.GLCameraView;
 import com.ook.android.VCS_EVENT_TYPE;
@@ -47,11 +48,12 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     TextView customMsgTv;
     RecyclerView windowRcView;
     TextView clientTv, losTv, uploadTv;
+    Button notRecvAudio, notRecvVideo;
 
-    private int videoW = 1280;
-    private int videoH = 720;
+    private int videoW = 1920;
+    private int videoH = 1080;
     private final int fps = 25;
-    private final int bitRate = 800;
+    private final int bitRate = 2048;
 
     private boolean isLight = false;//是否打开闪光灯
     private boolean isFront = true;//是否前置
@@ -87,6 +89,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private int sampleRate = 48000;
 
     private boolean hardDecoder = false;
+    private boolean isRecvAudio = true, isRecvVideo = true;//默认接收
 
     private WindowAdapter windowAdapter;
 
@@ -118,13 +121,25 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     public void onNotifyEnter(Models.Account account) {
         final int sdkNo = account.getStreamId();
         Log.e(TAG, "onNotifyEnter: 有人进入房间" + "  sdkno: " + sdkNo);
+
+//        roomClient.getApi().VCS_set_track(1, sdkNo);
+
         final MemberBean memberBean = new MemberBean();
         memberBean.setClientId(sdkNo + "");
         memberBean.setAccountId(account.getId());
         memberBean.setCloseVideo(account.getVideoState());
         memberBean.setMute(account.getAudioState());
-        memberBean.setCloseOtherVideo(closeOtherVideo);
-        memberBean.setCloseOtherAudio(closeOtherAudio);
+
+        if (!isRecvAudio){
+            memberBean.setCloseOtherAudio(true);
+        }else {
+            memberBean.setCloseOtherAudio(closeOtherAudio);
+        }
+        if (!isRecvVideo){
+            memberBean.setCloseOtherVideo(true);
+        }else {
+            memberBean.setCloseOtherVideo(closeOtherVideo);
+        }
 
         if (closeOtherVideo){
             roomClient.enableRecvVideo(sdkNo, false);
@@ -186,17 +201,29 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     @Override
-    public void onSendInfo(String info) {
+    public void onSendInfo(final String info) {
         // 60000270::delay=17 status=1 speed=687 buffer=0 overflow=0 */
         // 60000270=id, delay=上传到服务器之间的延迟时间,越大越不好, status=-1上传出错 >=0正常, speed=发送速度 buffer=缓冲包0-4正常 */
-        Log.e(TAG, "onSendInfo: info: " + info);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                uploadTv.setText(info);
+            }
+        });
     }
 
     @Override
-    public void onRecvInfo(String info) {
+    public void onRecvInfo(final String info) {
         // 60000002::recv=10144 comp=505 losf=91 */
         // 60000002=对方id, recv=接收包信息, comp=补偿 正常0, losf=丢失包信息 */
-        Log.e(TAG, "onRecvInfo: " + info);
+        //comp 高 网络不稳定
+        //losf 高 就是网络差
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                losTv.setText(info);
+            }
+        });
     }
 
     @Override
@@ -236,12 +263,14 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             }
         }
         if (isChange){
+            // TODO: 2019/10/29 用这个会黑屏一下，可以直接拿到控件去控制
             windowAdapter.notifyDataSetChanged();
         }
     }
 
     @Override
     public void onNotifyMyAccount(RoomServer.MyAccountNotify notify) {
+
         //sdk已经把数据同步到RoomClient的account里面了，
         Models.Account account = notify.getAccount();
         Log.e(TAG, "onNotifyMyAccount"
@@ -257,6 +286,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     @Override
+    public void onNotifyStreamChanged(RoomServer.StreamNotify streamNotify) {
+
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
@@ -269,6 +303,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
         initView();
         initVcsApi();
+        Log.e("11111111111", roomClient.getApi().vcs_getVersion());
     }
 
     private void initView() {
@@ -282,6 +317,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         clientTv = findViewById(R.id.client_tv);
         uploadTv = findViewById(R.id.upload_tv);
         losTv = findViewById(R.id.los_tv);
+        notRecvAudio = findViewById(R.id.not_recv_audio_btn);
+        notRecvVideo = findViewById(R.id.not_recv_video_btn);
 
         customMsgTv.setMovementMethod(ScrollingMovementMethod.getInstance());
 
@@ -289,9 +326,13 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         switchBtn.setOnClickListener(this);
         closeSelfVideoBtn.setOnClickListener(this);
         closeSelfAudioBtn.setOnClickListener(this);
+        notRecvAudio.setOnClickListener(this);
+        notRecvVideo.setOnClickListener(this);
 
         Intent intent = getIntent();
         meetingBean = (MeetingBean) intent.getSerializableExtra(ROOM_INFO);
+//        meetingBean.setStream_host("103.219.32.162");
+//        meetingBean.setStream_port(8006);
         roomSdkNo = Integer.parseInt(meetingBean.getSdk_no());
         trackServer = intent.getStringExtra(DEBUG_ADDR);
         openDebug = intent.getBooleanExtra(DEBUG_SWITCH, false);
@@ -421,6 +462,14 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         roomClient.hostCtrl(acc, null, mute ? Models.DeviceState.DS_Disabled: Models.DeviceState.DS_Active);
     }
 
+    public void useHighStream(int sdkNo){
+        roomClient.setStreamQuality(sdkNo, StreamChannel.CHANNEL_2);
+    }
+
+    public void useLowStream(int sdkNo){
+        roomClient.setStreamQuality(sdkNo, StreamChannel.CHANNEL_1);
+    }
+
     //主持人关闭视频
     public void hostCloseVideo(String acc, boolean isClose){
         roomClient.hostCtrl(acc, isClose ? Models.DeviceState.DS_Disabled: Models.DeviceState.DS_Active, null);
@@ -494,6 +543,32 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 break;
             case R.id.close_self_audio_btn://设置自己的音频，是否发送
                 closeSelfAudio(false);
+                break;
+            case R.id.not_recv_audio_btn://不接收所有人音频
+                isRecvAudio = !isRecvAudio;
+                roomClient.enableRecvAudio(0, isRecvAudio);
+                if (isRecvAudio){
+                    notRecvAudio.setText("不接收所有人音频");
+                }else {
+                    notRecvAudio.setText("接收所有人音频");
+                }
+                for (MemberBean memberBean : windowAdapter.getMemberList()){
+                    memberBean.setCloseOtherAudio(!isRecvAudio);
+                }
+                windowAdapter.notifyDataSetChanged();
+                break;
+            case R.id.not_recv_video_btn://不接收所有人视频
+                isRecvVideo = !isRecvVideo;
+                roomClient.enableRecvVideo(0, isRecvVideo);
+                if (isRecvVideo){
+                    notRecvVideo.setText("不接收所有人视频");
+                }else {
+                    notRecvVideo.setText("接收所有人视频");
+                }
+                for (MemberBean memberBean : windowAdapter.getMemberList()){
+                    memberBean.setCloseOtherVideo(!isRecvVideo);
+                }
+                windowAdapter.notifyDataSetChanged();
                 break;
         }
     }
