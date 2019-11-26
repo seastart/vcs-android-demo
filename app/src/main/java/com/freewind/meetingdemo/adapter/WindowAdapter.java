@@ -21,11 +21,14 @@ import com.freewind.meetingdemo.R;
 import com.freewind.meetingdemo.activity.MeetingActivity;
 import com.freewind.meetingdemo.bean.MemberBean;
 import com.freewind.vcs.Models;
+import com.freewind.vcs.StreamTrack;
 import com.ook.android.showview.MeetingGLSurfaceView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import static com.ook.android.VCS_EVENT_TYPE.CENTERINSIDE;
 
 public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHolder> {
     private List<MemberBean> memberList;
@@ -83,7 +86,8 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
     @Override
     public void onBindViewHolder(@NonNull final WindowAdapter.MyViewHolder holder, final int position) {
         final MemberBean memberBean = memberList.get(position);
-
+        holder.meetingGLSurfaceView.setScaleType(CENTERINSIDE);
+        //        holder.img.setScaleType(CENTERCROP);
         holder.nameTv.setText(memberBean.getClientId());
 
         if (memberBean.isCloseOtherVideo()){
@@ -170,17 +174,31 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
             }
         });
 
-        holder.highBtn.setOnClickListener(new View.OnClickListener() {
+        holder.btn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MeetingActivity)context).useHighStream(Integer.valueOf(memberBean.getClientId()));
+                ((MeetingActivity)context).useChannel(Integer.valueOf(memberBean.getClientId()), StreamTrack.TRACK_0);//track0
             }
         });
 
-        holder.lowBtn.setOnClickListener(new View.OnClickListener() {
+        holder.btn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MeetingActivity)context).useLowStream(Integer.valueOf(memberBean.getClientId()));
+                ((MeetingActivity)context).useChannel(Integer.valueOf(memberBean.getClientId()), StreamTrack.TRACK_1);//track1
+            }
+        });
+
+        holder.btn3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MeetingActivity)context).useChannel(Integer.valueOf(memberBean.getClientId()), StreamTrack.TRACK_2);//track2
+            }
+        });
+
+        holder.btn4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MeetingActivity)context).useChannel(Integer.valueOf(memberBean.getClientId()), StreamTrack.TRACK_3);//track3
             }
         });
 
@@ -197,7 +215,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         TextView nameTv;
         ImageView selfMuteIv, otherMuteIv;
         TextView selfCloseTv, otherCloseTv;
-        Button closeVideoBtn, muteBtn, kickBtn, hostCloseVideoBtn, hostCloseAudioBtn, highBtn, lowBtn;
+        Button closeVideoBtn, muteBtn, kickBtn, hostCloseVideoBtn, hostCloseAudioBtn, btn1, btn2, btn3, btn4;
 
         MyViewHolder(View convertView) {
             super(convertView);
@@ -212,8 +230,10 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
             kickBtn = convertView.findViewById(R.id.kick_out_btn);
             hostCloseVideoBtn = convertView.findViewById(R.id.host_close_video_btn);
             hostCloseAudioBtn = convertView.findViewById(R.id.host_close_audio_btn);
-            highBtn = convertView.findViewById(R.id.high_btn);
-            lowBtn = convertView.findViewById(R.id.low_btn);
+            btn1 = convertView.findViewById(R.id.btn1);
+            btn2 = convertView.findViewById(R.id.btn2);
+            btn3 = convertView.findViewById(R.id.btn3);
+            btn4 = convertView.findViewById(R.id.btn4);
         }
     }
 }

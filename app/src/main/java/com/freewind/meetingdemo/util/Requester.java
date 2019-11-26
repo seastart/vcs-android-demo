@@ -30,7 +30,7 @@ public class Requester {
     public static void enterMeeting(String room_no, String password, final HttpCallBack<RoomInfoBean> callBack) {
         String url = Constants.API_HOST + "room/enter-room";
         RequestParams params = new RequestParams();
-        params.put("account_id", room_no);
+        params.put("room_no", room_no);
         if (!password.isEmpty()) {
             params.put("password", password);
         }

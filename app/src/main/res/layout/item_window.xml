@@ -109,19 +109,37 @@
 
     <LinearLayout
         android:layout_width="264dp"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
         <Button
-            android:id="@+id/high_btn"
-            android:layout_width="wrap_content"
+            android:id="@+id/btn1"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="40dp"
-            android:text="用大码流"/>
+            android:text="0"/>
 
         <Button
-            android:id="@+id/low_btn"
-            android:layout_width="wrap_content"
+            android:id="@+id/btn2"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="40dp"
-            android:text="用小码流"/>
+            android:text="1"/>
+
+
+        <Button
+            android:id="@+id/btn3"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="40dp"
+            android:text="2"/>
+
+        <Button
+            android:id="@+id/btn4"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="40dp"
+            android:text="3"/>
 
     </LinearLayout>
 

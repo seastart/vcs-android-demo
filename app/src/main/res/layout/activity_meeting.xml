@@ -88,6 +88,16 @@
             app:layout_constraintBottom_toTopOf="@+id/not_recv_audio_btn"
             app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
 
+        <Button
+            android:id="@+id/change_orientation_btn"
+            android:focusable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="横竖屏变换"
+            android:layout_marginBottom="5dp"
+            app:layout_constraintBottom_toTopOf="@+id/not_recv_video_btn"
+            app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
+
     </android.support.constraint.ConstraintLayout>
 
     <TextView
