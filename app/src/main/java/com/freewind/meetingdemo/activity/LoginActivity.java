@@ -1,8 +1,8 @@
 package com.freewind.meetingdemo.activity;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,6 +12,8 @@ import com.freewind.meetingdemo.bean.UserInfoBean;
 import com.freewind.meetingdemo.common.UserConfig;
 import com.freewind.meetingdemo.http.HttpCallBack;
 import com.freewind.meetingdemo.util.Requester;
+import com.freewind.vcs.Models;
+import com.freewind.vcs.VcsServer;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -42,6 +44,21 @@ public class LoginActivity extends AppCompatActivity {
 
                         UserConfig.updateUserInfo(data);
                         UserConfig.setRequestToken(data.getData().getToken());
+
+                        VcsServer.getInstance().start(data.getData().getAccount().getId(),
+                                data.getData().getToken(),
+                                data.getData().getReg().getPort(),
+                                data.getData().getReg().getAddr(), new VcsServer.VcsMsgListener() {
+                                    @Override
+                                    public void InviteNotification(String accountId, String accountName, String targetId, String roomNo, String roomName, String roomPwd) {
+
+                                    }
+
+                                    @Override
+                                    public void InviteConfirmNotification(String roomNo, String accId, Models.InviteResponse response) {
+
+                                    }
+                                });
 
                         startActivity(new Intent(LoginActivity.this, MainActivity.class)
                                 .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK));

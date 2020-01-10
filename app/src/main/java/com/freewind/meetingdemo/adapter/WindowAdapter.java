@@ -11,6 +11,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -22,6 +23,8 @@ import com.freewind.meetingdemo.activity.MeetingActivity;
 import com.freewind.meetingdemo.bean.MemberBean;
 import com.freewind.vcs.Models;
 import com.freewind.vcs.StreamTrack;
+import com.ook.android.VCS_EVENT_TYPE;
+import com.ook.android.YUVPlayer.YUVPlayerTextureView;
 import com.ook.android.showview.MeetingGLSurfaceView;
 
 import java.util.ArrayList;
@@ -86,15 +89,15 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
     @Override
     public void onBindViewHolder(@NonNull final WindowAdapter.MyViewHolder holder, final int position) {
         final MemberBean memberBean = memberList.get(position);
-        holder.meetingGLSurfaceView.setScaleType(CENTERINSIDE);
+//        holder.meetingGLSurfaceView.setScaleType(CENTERINSIDE);
         //        holder.img.setScaleType(CENTERCROP);
         holder.nameTv.setText(memberBean.getClientId());
 
         if (memberBean.isCloseOtherVideo()){
-            holder.otherCloseTv.setVisibility(View.VISIBLE);
+//            holder.otherCloseTv.setVisibility(View.VISIBLE);
             holder.closeVideoBtn.setText("打开视频");
         }else {
-            holder.otherCloseTv.setVisibility(View.GONE);
+//            holder.otherCloseTv.setVisibility(View.GONE);
             holder.closeVideoBtn.setText("关闭视频");
         }
 
@@ -161,16 +164,20 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         holder.hostCloseVideoBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //如果为DS_Active，则关闭 true，否则不关闭 false
-                ((MeetingActivity)context).hostCloseVideo(memberBean.getAccountId(), memberBean.getCloseVideo() == Models.DeviceState.DS_Active);
+                ((MeetingActivity)context).hostCtrlMember(
+                        memberBean.getAccountId(),
+                        memberBean.getCloseVideo() == Models.DeviceState.DS_Active ? Models.DeviceState.DS_Disabled : Models.DeviceState.DS_Active,
+                        null);
             }
         });
 
         holder.hostCloseAudioBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //如果为DS_Active，则禁言 true，否则不禁言 false
-                ((MeetingActivity)context).hostMute(memberBean.getAccountId(), memberBean.getMute() == Models.DeviceState.DS_Active);
+                ((MeetingActivity)context).hostCtrlMember(
+                        memberBean.getAccountId(),
+                        null,
+                        memberBean.getMute() == Models.DeviceState.DS_Active ? Models.DeviceState.DS_Disabled : Models.DeviceState.DS_Active);
             }
         });
 
@@ -216,10 +223,18 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         ImageView selfMuteIv, otherMuteIv;
         TextView selfCloseTv, otherCloseTv;
         Button closeVideoBtn, muteBtn, kickBtn, hostCloseVideoBtn, hostCloseAudioBtn, btn1, btn2, btn3, btn4;
+        TextureView cameraTextureView;
+
+        public YUVPlayerTextureView mTextureView;
 
         MyViewHolder(View convertView) {
             super(convertView);
             meetingGLSurfaceView = convertView.findViewById(R.id.gl_view);
+            meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.CENTERINSIDE);
+//            cameraTextureView = convertView.findViewById(R.id.item_texture);
+//            mTextureView = new YUVPlayerTextureView(context, cameraTextureView);
+//            mTextureView.setScaleType(VCS_EVENT_TYPE.CENTERINSIDE);
+
             nameTv = convertView.findViewById(R.id.id_tv);
             selfMuteIv = convertView.findViewById(R.id.self_mute_iv);
             otherMuteIv = convertView.findViewById(R.id.other_mute_iv);

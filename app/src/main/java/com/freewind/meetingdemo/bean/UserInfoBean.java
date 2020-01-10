@@ -23,7 +23,16 @@ public class UserInfoBean extends BaseBean {
     public static class DataBean extends BaseBean {
         private UserBean account;
         private RoomBean room;
+        private RegBean reg;
         private String token;
+
+        public RegBean getReg() {
+            return reg == null ? new RegBean() : reg;
+        }
+
+        public void setReg(RegBean reg) {
+            this.reg = reg;
+        }
 
         public UserBean getAccount() {
             return account;

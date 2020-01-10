@@ -29,9 +29,9 @@ public class HttpHelper {
     private static AsyncHttpClient getAsyncInstance(){
         AsyncHttpClient httpClient = new AsyncHttpClient();
 
-        httpClient.addHeader("vcs-appid","0a16828823ce41c5ad040be3ed384c14");
-        httpClient.addHeader("vcs-token", UserConfig.getRequestToken());
-        httpClient.addHeader("vcs-signature","");
+        httpClient.addHeader("nvc-appid","0a16828823ce41c5ad040be3ed384c14");
+        httpClient.addHeader("nvc-token", UserConfig.getRequestToken());
+        httpClient.addHeader("nvc-signature","");
         httpClient.addHeader("Accept", "application/json");
         httpClient.addHeader("Content-Type", "application/x-www-form-urlencoded");
 

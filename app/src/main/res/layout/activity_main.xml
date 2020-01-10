@@ -59,7 +59,7 @@
 
         <android.support.v7.widget.AppCompatEditText
             android:id="@+id/room_no_et"
-            android:text="93409658"
+            android:text="915105013005"
             android:hint="输入房间号"
             android:inputType="text"
             style="@style/InputStyle" />
@@ -258,6 +258,38 @@
             android:layout_height="wrap_content" />
 
     </LinearLayout>
+
+    <RadioGroup
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:text="720P："
+            android:layout_width="104dp"
+            style="@style/LabelStyle" />
+
+        <RadioButton
+            android:id="@+id/video_720_box"
+            android:focusable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:layout_marginStart="25dp"
+            android:layout_width="104dp"
+            android:text="1080P："
+            style="@style/LabelStyle" />
+
+        <RadioButton
+            android:id="@+id/video_1080_box"
+            android:focusable="true"
+            android:checked="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </RadioGroup>
 
     <android.support.v7.widget.AppCompatButton
         android:id="@+id/start_btn"

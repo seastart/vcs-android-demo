@@ -4,12 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/root"
     tools:context=".activity.MeetingActivity">
 
     <com.ook.android.GLCameraView
         android:id="@+id/cameraSurfaceView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+<!--    <include layout="@layout/layout_preview_portrait"/>-->
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/window_rcview"
@@ -40,7 +43,6 @@
         <Button
             android:id="@+id/camera_light_btn"
             android:focusable="true"
-            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="开闪光灯"

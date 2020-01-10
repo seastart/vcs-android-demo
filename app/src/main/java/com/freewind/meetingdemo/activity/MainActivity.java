@@ -12,15 +12,20 @@ import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.AppCompatEditText;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
 import com.freewind.meetingdemo.R;
 import com.freewind.meetingdemo.bean.RoomInfoBean;
 import com.freewind.meetingdemo.common.Constants;
+import com.freewind.meetingdemo.common.UserConfig;
 import com.freewind.meetingdemo.http.HttpCallBack;
 import com.freewind.meetingdemo.util.Requester;
 import com.freewind.meetingdemo.util.ToastUtil;
+import com.freewind.vcs.Models;
+import com.freewind.vcs.VcsServer;
 
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -49,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
     CheckBox hardDecoderBox;
     CheckBox autoBox;
     TextView ipTv;
+    RadioButton video720Box;
+    RadioButton video1080Box;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
         sampleRateEt = findViewById(R.id.sample_rate_et);
         hardDecoderBox = findViewById(R.id.hard_decoder_box);
         autoBox = findViewById(R.id.auto_check_box);
+        video720Box = findViewById(R.id.video_720_box);
+        video1080Box = findViewById(R.id.video_1080_box);
         ipTv = findViewById(R.id.ip_addr_tv);
 
         ipTv.setText("ip地址：" + getIpAddress(this));
@@ -82,18 +92,27 @@ public class MainActivity extends AppCompatActivity {
                             ToastUtil.getInstance().showLongToast("该会议室需要密码");
                             return;
                         }
+
+                        int level = 0;
+                        if (video1080Box.isChecked()){
+                            level = 1;
+                        }else {
+                            level = 0;
+                        }
+
                         startActivity(new Intent(MainActivity.this, MeetingActivity.class)
                                 .putExtra(MeetingActivity.DEBUG_ADDR, Objects.requireNonNull(debugAddrEt.getText()).toString())
                                 .putExtra(MeetingActivity.DEBUG_SWITCH, debugCheckBox.isChecked())
                                 .putExtra(MeetingActivity.AGC, Objects.requireNonNull(agcEt.getText()).toString())
                                 .putExtra(MeetingActivity.AEC, Objects.requireNonNull(aecEt.getText()).toString())
                                 .putExtra(MeetingActivity.SAMPLE_RATE, Integer.valueOf(Objects.requireNonNull(sampleRateEt.getText()).toString()))
-                                .putExtra(MeetingActivity.CLOSE_SELF_VIDEO, closeSelfVideoBox.isChecked())
-                                .putExtra(MeetingActivity.CLOSE_SELF_AUDIO, closeSelfAudioBox.isChecked())
                                 .putExtra(MeetingActivity.CLOSE_OTHER_VIDEO, closeOtherVideoBox.isChecked())
                                 .putExtra(MeetingActivity.CLOSE_OTHER_AUDIO, closeOtherAudioBox.isChecked())
+                                .putExtra(MeetingActivity.CLOSE_SELF_VIDEO, closeSelfVideoBox.isChecked())
+                                .putExtra(MeetingActivity.CLOSE_SELF_AUDIO, closeSelfAudioBox.isChecked())
                                 .putExtra(MeetingActivity.HARD_DECODER, hardDecoderBox.isChecked())
-                                .putExtra(MeetingActivity.AUTO_BITRATE, autoBox.isChecked())
+                                .putExtra(MeetingActivity.VIDEO_LEVEL, level)
+
                                 .putExtra(MeetingActivity.ROOM_INFO, data.getData())
                         );
                     }
@@ -147,7 +166,6 @@ public class MainActivity extends AppCompatActivity {
                 ((ip >> 16) & 0xFF) + "." +
                 (ip >> 24 & 0xFF);
     }
-
 
     // 获取有限网IP
     private static String getLocalIp() {

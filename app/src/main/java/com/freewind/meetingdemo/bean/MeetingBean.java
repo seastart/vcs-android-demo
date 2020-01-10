@@ -11,11 +11,9 @@ import java.io.Serializable;
 public class MeetingBean extends BaseBean {
     private String id;
     private String room_id;
-    private long created_at;
     private UserBean account;
     private RoomBean room;
     private String session;
-    private String wb_host;
     private boolean isInvite = false;
     private String meeting_host;
     private int meeting_port;
@@ -71,14 +69,6 @@ public class MeetingBean extends BaseBean {
         isInvite = invite;
     }
 
-    public String getWb_host() {
-        return wb_host;
-    }
-
-    public void setWb_host(String wb_host) {
-        this.wb_host = wb_host;
-    }
-
     public String getSession() {
         return session;
     }
@@ -109,14 +99,6 @@ public class MeetingBean extends BaseBean {
 
     public void setAccount(UserBean account) {
         this.account = account;
-    }
-
-    public long getCreated_at() {
-        return created_at;
-    }
-
-    public void setCreated_at(long created_at) {
-        this.created_at = created_at;
     }
 
     public RoomBean getRoom() {

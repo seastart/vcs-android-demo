@@ -28,7 +28,7 @@ public class Requester {
      * @param password 视频会议密码(如果会议启用密码)
      */
     public static void enterMeeting(String room_no, String password, final HttpCallBack<RoomInfoBean> callBack) {
-        String url = Constants.API_HOST + "room/enter-room";
+        String url = Constants.API_HOST + "room/enter";
         RequestParams params = new RequestParams();
         params.put("room_no", room_no);
         if (!password.isEmpty()) {
