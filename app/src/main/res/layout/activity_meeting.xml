@@ -14,6 +14,17 @@
 
 <!--    <include layout="@layout/layout_preview_portrait"/>-->
 
+    <TextView
+        android:id="@+id/close_preview_tv"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:background="#009688"
+        android:textColor="#fff"
+        android:textSize="18sp"
+        android:text="关闭预览"/>
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/window_rcview"
         android:layout_marginTop="22dp"
@@ -142,5 +153,12 @@
         android:layout_gravity="bottom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:visibility="gone"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
 </FrameLayout>

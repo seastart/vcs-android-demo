@@ -184,28 +184,28 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         holder.btn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MeetingActivity)context).useChannel(Integer.valueOf(memberBean.getClientId()), StreamTrack.TRACK_0);//track0
+                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getClientId()), StreamTrack.TRACK_0);//track0
             }
         });
 
         holder.btn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MeetingActivity)context).useChannel(Integer.valueOf(memberBean.getClientId()), StreamTrack.TRACK_1);//track1
+                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getClientId()), StreamTrack.TRACK_1);//track1
             }
         });
 
         holder.btn3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MeetingActivity)context).useChannel(Integer.valueOf(memberBean.getClientId()), StreamTrack.TRACK_2);//track2
+                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getClientId()), StreamTrack.TRACK_2);//track2
             }
         });
 
         holder.btn4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MeetingActivity)context).useChannel(Integer.valueOf(memberBean.getClientId()), StreamTrack.TRACK_3);//track3
+                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getClientId()), StreamTrack.TRACK_3);//track3
             }
         });
 

@@ -1,9 +1,12 @@
 package com.freewind.meetingdemo.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.widget.RecyclerView;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -12,6 +15,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,7 +24,12 @@ import com.freewind.meetingdemo.R;
 import com.freewind.meetingdemo.adapter.WindowAdapter;
 import com.freewind.meetingdemo.bean.MeetingBean;
 import com.freewind.meetingdemo.bean.MemberBean;
+import com.freewind.meetingdemo.bean.RoomInfoBean;
+import com.freewind.meetingdemo.common.Constants;
 import com.freewind.meetingdemo.common.UserConfig;
+import com.freewind.meetingdemo.http.HttpCallBack;
+import com.freewind.meetingdemo.util.Requester;
+import com.freewind.meetingdemo.util.ToastUtil;
 import com.freewind.vcs.CameraPreview;
 import com.freewind.vcs.Models;
 import com.freewind.vcs.RoomClient;
@@ -28,10 +37,10 @@ import com.freewind.vcs.RoomEvent;
 import com.freewind.vcs.RoomServer;
 import com.freewind.vcs.StreamTrack;
 import com.ook.android.GLCameraView;
-import com.ook.android.UploadUserBean;
 import com.ook.android.VCS_EVENT_TYPE;
 
-import java.util.ArrayList;
+import java.io.File;
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**
@@ -49,11 +58,12 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     Button switchBtn;
     Button closeSelfVideoBtn;
     Button closeSelfAudioBtn;
-    TextView customMsgTv;
+    TextView customMsgTv, closePreviewTv;
     RecyclerView windowRcView;
     TextView clientTv, losTv, uploadTv;
     Button notRecvAudio, notRecvVideo, changeOrientationBtn;
     FrameLayout rootFrameLayout;
+    ProgressBar progressBar;
 
     private int videoH = 720;
     private int videoW = 1280;
@@ -101,9 +111,59 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
 
     private WindowAdapter windowAdapter;
 
+    protected static final int TIME_COUNT = 10;
+
+    //内部静态handler，避免内存泄漏，建议写法
+    private static class MyHandler extends Handler {
+        private final WeakReference<MeetingActivity> mActivity;
+
+        MyHandler(MeetingActivity activity) {
+            mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            final MeetingActivity activity = mActivity.get();
+            if (activity != null) {
+                switch (msg.what) {
+                    case TIME_COUNT:
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+    private MyHandler mHandler = new MyHandler(this);
+
     @Override
     public void onEnter(int result) {
-        Log.e(TAG, "你进入了会议室 result:" + result);
+        //如果result != 0 则表示服务器上的token已经失效，需要进行重新进入房间的逻辑
+        if (result!=0){
+            ToastUtil.getInstance().showLongToast("正在进行重连");
+            if (progressBar.getVisibility() == View.VISIBLE){
+                return;
+            }
+            if (meetingBean.getAccount() == null || meetingBean.getAccount().getRoom() == null){
+                return;
+            }
+            progressBar.setVisibility(View.VISIBLE);
+            Requester.enterMeeting(meetingBean.getAccount().getRoom().getNo(), "", new HttpCallBack<RoomInfoBean>() {
+                @Override
+                public void onSucceed(RoomInfoBean data) {
+                    if (data.getCode() == Constants.NEED_PWD){
+                        ToastUtil.getInstance().showLongToast("该会议室需要密码");
+                        onBackPressed();
+                    }
+                }
+
+                @Override
+                protected void onComplete(boolean success) {
+                    progressBar.setVisibility(View.GONE);
+                }
+            });
+        }
     }
 
     @Override
@@ -115,6 +175,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     public void onNotifyRoom(Models.Room room) {
         Log.e(TAG, "onNotifyRoom"
                 + "  id:" + room.getId() + "  sdkNo:" + room.getSdkNo()
+
                 + "  whiteBoard:" + room.getWhiteBoard() + "  state:" + room.getState()
                 + "  type:" +room.getType());
     }
@@ -125,6 +186,17 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         finish();
     }
 
+    /**
+     * Account类部分字段
+     * String id;                          //id
+     * int StreamId;                       //流媒体连接标识
+     * String name;                        //用户名
+     * String nickname;                    //昵称
+     * Models.ConferenceRole role;         //参会角色
+     * Models.DeviceState videoState;      //视频状态
+     * Models.DeviceState audioState;      //音频状态
+     * int terminalType;                   //登录终端类型：1-PC,2-Android,3-IOS,4-安卓一体机,5-录播主机
+     */
     @Override
     public void onNotifyEnter(Models.Account account) {
         final int sdkNo = account.getStreamId();
@@ -199,7 +271,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
 
     @Override
     public void onFrame(byte[] ost, byte[] tnd, byte[] trd, byte[] yuv, int width, int height, int fourcc, int clientId, int mask) {
-        Log.e(TAG, "onFrame  " + "  clientId: " + clientId + "   " + width + " " + height + "   mask:" + mask);
+        Log.e("3333333333", "onFrame  " + "  clientId: " + clientId + "   " + width + " " + height + "   mask:" + mask);
 
         final WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(clientId + "");
         if (holder != null && holder.meetingGLSurfaceView != null) {
@@ -234,7 +306,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     }
 
     @Override
-    public void onXBitrate(int level) {
+    public void onXBitrate(int level, int bitRate) {
         switch (level) {
             case VCS_EVENT_TYPE.VCS_START_XBITRATE://自适应模式启动
                 break;
@@ -254,9 +326,12 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
                 + "  name:" + account.getName() + "  nickname:" + account.getNickname()
                 + "  videoState:" + account.getVideoState() + "  audioState:" + account.getAudioState() + "  role:" + account.getRole());
 
+        StringBuilder streamLog = new StringBuilder("StreamList:   streamId:" + account.getStreamId());
         for (Models.Stream stream : account.getStreamsList()){
-            Log.e("666666", "  streamId:" + account.getStreamId() + "  id："+stream.getId() + "    name:" + stream.getName() + "   type:" + stream.getType());
+            streamLog.append("\n  id：").append(stream.getId()).append("    name:").append(stream.getName()).append("   type:").append(stream.getType()).append("   channelType:").append(stream.getChannelType());
         }
+        Log.e(TAG, streamLog.toString());
+
         List<MemberBean> memberBeans = windowAdapter.getMemberList();
         int size = memberBeans.size();
 
@@ -290,18 +365,25 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
                 + "  id:" + account.getId() + "  streamId:" + account.getStreamId()
                 + "  name:" + account.getName() + "  nickname:" + account.getNickname()
                 + "  videoState:" + account.getVideoState() + "  audioState:" + account.getAudioState() + "  role:" + account.getRole());
-        if (isSendSelfVideo != (account.getVideoState() == Models.DeviceState.DS_Active)){//主持人会控操作后，状态发生改变
-            closeSelfVideo(true);
+        if (account.hasVideoState() && isSendSelfVideo != (account.getVideoState() == Models.DeviceState.DS_Active)){//主持人会控操作后，状态发生改变
+            closeSelfVideo(true, account.getVideoState());
         }
-        if (isSendSelfAudio != (account.getAudioState() == Models.DeviceState.DS_Active)){
-            closeSelfAudio(true);
+        if (account.hasAudioState() && isSendSelfAudio != (account.getAudioState() == Models.DeviceState.DS_Active)){
+            closeSelfAudio(true, account.getAudioState());
         }
     }
 
     //流变化通知，所有人收得到，演示流可以在这里做
     @Override
     public void onNotifyStreamChanged(RoomServer.StreamNotify streamNotify) {
-        Log.e(TAG, "onNotifyStreamChanged" + " " + streamNotify.getOperation());
+        Log.e(TAG, "onNotifyStreamChanged:  "
+                + "  sdkNo:" + streamNotify.getSdkNo()
+                + "  operation:" + streamNotify.getOperation()
+                + "  streamName:" + streamNotify.getStream().getName()
+                + "  channelType:" + streamNotify.getStream().getChannelType()
+                + "  type:" + streamNotify.getStream().getType());
+
+
         streamNotify.getAccountId(); //判断哪个用户
 
         switch (streamNotify.getOperation().getNumber()){
@@ -320,7 +402,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     //透传消息
     @Override
     public void onNotifyPassThough(RoomServer.PassthroughNotify passthroughNotify) {
-
+        Log.e(TAG, "onNotifyPassThough:  " + passthroughNotify.getMessage());
     }
 
     //主持人会控,只有被控制的人会收到回调
@@ -385,9 +467,11 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         closeSelfAudioBtn = findViewById(R.id.close_self_audio_btn);
         cameraSurfaceView = findViewById(R.id.cameraSurfaceView);
         rootFrameLayout = findViewById(R.id.root);
+        progressBar = findViewById(R.id.progress_bar);
 //        cameraTextureView = findViewById(R.id.cameraTextureView);
 
         customMsgTv = findViewById(R.id.custom_msg_tv);
+        closePreviewTv = findViewById(R.id.close_preview_tv);
         windowRcView = findViewById(R.id.window_rcview);
         clientTv = findViewById(R.id.client_tv);
         uploadTv = findViewById(R.id.upload_tv);
@@ -413,8 +497,8 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         roomSdkNo = Integer.parseInt(meetingBean.getSdk_no());
         trackServer = intent.getStringExtra(DEBUG_ADDR);
         openDebug = intent.getBooleanExtra(DEBUG_SWITCH, false);
-        agc = Integer.valueOf(intent.getStringExtra(AGC));
-        aec = Integer.valueOf(intent.getStringExtra(AEC));
+        agc = Integer.parseInt(intent.getStringExtra(AGC));
+        aec = Integer.parseInt(intent.getStringExtra(AEC));
         closeOtherAudio = intent.getBooleanExtra(CLOSE_OTHER_AUDIO, false);
         closeOtherVideo = intent.getBooleanExtra(CLOSE_OTHER_VIDEO, false);
         isSendSelfVideo = !intent.getBooleanExtra(CLOSE_SELF_VIDEO, true);
@@ -423,16 +507,16 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         level = intent.getIntExtra(VIDEO_LEVEL, 0);
 
         if (level == 0){
+            videoH = 480;
+            videoW = 856;
+            bitRate = 400;
+        }else{
             videoH = 720;
             videoW = 1280;
             bitRate = 900;
-        }else{
-            videoH = 1080;
-            videoW = 1920;
-            bitRate = 2048;
         }
 
-        sampleRate = intent.getIntExtra(SAMPLE_RATE, 22050);
+        sampleRate = intent.getIntExtra(SAMPLE_RATE, 48000);
 
         hardDecoder = intent.getBooleanExtra(HARD_DECODER, false);
 
@@ -440,7 +524,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         windowRcView.setAdapter(windowAdapter);
         windowRcView.getRecycledViewPool().setMaxRecycledViews(0, 0);
 
-        mySdkNo = Integer.valueOf(UserConfig.getUserInfo().getData().getAccount().getRoom().getSdk_no());
+        mySdkNo = Integer.parseInt(UserConfig.getUserInfo().getData().getAccount().getRoom().getSdk_no());
         clientTv.setText(mySdkNo + "");
     }
 
@@ -468,8 +552,13 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         roomClient.setMeetingAddr(meetingBean.getMeeting_host());
         roomClient.setMeetingPort(meetingBean.getMeeting_port());
 
-        roomClient.setNeedOnFrameYUV(true);
-        roomClient.useMultiStream(true);
+        File file = getExternalFilesDir(null);
+        String filePath = file.getAbsolutePath();
+        roomClient.setDebugLog(filePath);
+
+
+        roomClient.setNeedOnFrameYUV(false);//是否需要onFrame回调里YUV数组数据回调，不使用的话建议关闭
+        roomClient.useMultiStream(true);//设置开启多流
 //        List<UploadUserBean>encoderList=new ArrayList<>();
 //        UploadUserBean bean=new UploadUserBean();
 //        bean.setAutoxbit(true);
@@ -482,7 +571,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
 //        bean.setTrack(2);
 //        encoderList.add(bean);
 //        roomClient.setDuplicateUploadConfig(encoderList);
-
+        roomClient.setResolutionSize(1280, 720);
         roomClient.setVideoOutput(videoW, videoH, fps, bitRate);//设置视频分辨率宽高，帧率，码率
         roomClient.setAgcAec(agc, aec);//设置AGC,AEC
         roomClient.setFps(fps);//设置帧率
@@ -509,22 +598,25 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         if (isSendSelfVideo) {
             roomClient.setDefaultSendSelfVideo(true);
             closeSelfVideoBtn.setText("关闭自己的视频");
+            closePreviewTv.setVisibility(View.GONE);
         } else {
             roomClient.setDefaultSendSelfVideo(false);
 //            roomClient.enableSendVideo(false);
             closeSelfVideoBtn.setText("打开自己的视频");
+            closePreviewTv.setVisibility(View.VISIBLE);
         }
         roomClient.setCenterInside(true);
 
         roomClient.open();
+
     }
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         if (roomClient != null){
             roomClient.close();//退出释放
         }
-        super.onDestroy();
     }
 
     //闪光灯开关
@@ -556,7 +648,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
 
     //设置是否接收某人的视频
     public void closeOtherVideo(String clientId, boolean isClose){
-        roomClient.enableRecvVideo(Integer.valueOf(clientId), !isClose);
+        roomClient.enableRecvVideo(Integer.parseInt(clientId), !isClose);
     }
 
     //设置是否接收某人音频
@@ -566,7 +658,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
 //        }else {
 //            roomClient.setFilter(Integer.valueOf(clientId), StreamFilter.FILTER_AUDIO);
 //        }
-        roomClient.enableRecvAudio(Integer.valueOf(clientId), !isMute);
+        roomClient.enableRecvAudio(Integer.parseInt(clientId), !isMute);
     }
 
     //主持人踢人
@@ -589,16 +681,16 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     }
 
     //设置自己的视频，是否发送
-    private void closeSelfVideo(boolean isFromNotify) {
-        Models.Account account = roomClient.getAccount();
-        if (!isFromNotify && account.getVideoState() == Models.DeviceState.DS_Disabled){
-            showToast("当前被主持人关闭，不可操作");
-            return;
-        }
-        if (isFromNotify){
-            roomClient.enableSendVideo(account.getVideoState());
-            isSendSelfVideo = account.getVideoState() != Models.DeviceState.DS_Disabled;
+    private void closeSelfVideo(boolean isFromNotify, Models.DeviceState fromNotifyState) {
+        if (isFromNotify){//来自会控操作
+            roomClient.enableSendVideo(fromNotifyState);
+            isSendSelfVideo = fromNotifyState != Models.DeviceState.DS_Disabled;
         }else {
+            Models.Account account = roomClient.getAccount();
+            if (account.getVideoState() == Models.DeviceState.DS_Disabled){
+                showToast("当前被主持人关闭，不可操作");
+                return;
+            }
             isSendSelfVideo = account.getVideoState() != Models.DeviceState.DS_Active;
             if (isSendSelfVideo){
                 roomClient.enableSendVideo(Models.DeviceState.DS_Active);
@@ -607,23 +699,25 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
             }
         }
         if (isSendSelfVideo) {
+            closePreviewTv.setVisibility(View.GONE);
             closeSelfVideoBtn.setText("关闭自己的视频");
         } else {
+            closePreviewTv.setVisibility(View.VISIBLE);
             closeSelfVideoBtn.setText("打开自己的视频");
         }
     }
 
     //设置自己的音频，是否发送
-    private void closeSelfAudio(boolean isFromNotify) {
-        Models.Account account = roomClient.getAccount();
-        if (!isFromNotify && account.getAudioState() == Models.DeviceState.DS_Disabled){
-            showToast("当前被主持人禁言，不可操作");
-            return;
-        }
+    private void closeSelfAudio(boolean isFromNotify, Models.DeviceState fromNotifyState) {
         if (isFromNotify){
-            roomClient.enableSendAudio(account.getAudioState());
-            isSendSelfAudio = account.getAudioState() != Models.DeviceState.DS_Disabled;
+            roomClient.enableSendAudio(fromNotifyState);
+            isSendSelfAudio = fromNotifyState != Models.DeviceState.DS_Disabled;
         }else {
+            Models.Account account = roomClient.getAccount();
+            if (account.getAudioState() == Models.DeviceState.DS_Disabled){
+                showToast("当前被主持人禁言，不可操作");
+                return;
+            }
             isSendSelfAudio = account.getAudioState() != Models.DeviceState.DS_Active;
             if (isSendSelfAudio){
                 roomClient.enableSendAudio(Models.DeviceState.DS_Active);
@@ -638,6 +732,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         }
     }
 
+    @SuppressLint("SourceLockedOrientationActivity")
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
@@ -645,7 +740,6 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
                 switchLight();
 //                flag = !flag;
 //                roomClient.hostSetWhiteboard(flag);
-
                 break;
             case R.id.camera_switch_btn://切换摄像头
                 switchCamera();
@@ -660,10 +754,10 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
                 }
                 break;
             case R.id.close_self_video_btn://设置自己的视频，是否发送
-                closeSelfVideo(false);
+                closeSelfVideo(false, null);
                 break;
             case R.id.close_self_audio_btn://设置自己的音频，是否发送
-                closeSelfAudio(false);
+                closeSelfAudio(false, null);
                 break;
             case R.id.not_recv_audio_btn://不接收所有人音频
                 isRecvAudio = !isRecvAudio;
@@ -701,7 +795,14 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     boolean initCameraView = false;
 
     @Override
+    protected void onPause() {
+        super.onPause();
+//        closeSelfVideo(false);
+    }
+
+    @Override
     public void onPreviewFrame(byte[] yuv, int width, int height, long stamp, int format) {
+        //预览数据回调
         //camera 数据回调 NV21 这个通用适配所有手机  format 默认ImageFormat.NV21
         Log.e("7777777", stamp + "");
 

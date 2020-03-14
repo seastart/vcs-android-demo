@@ -16,7 +16,9 @@
             android:name="android.max_aspect"
             android:value="2.2" />
 
-        <activity android:name=".activity.RegisterActivity"/>
+        <activity
+            android:theme="@style/PopDialog2"
+            android:name=".activity.RegisterActivity"/>
         <activity android:name=".activity.WelcomeActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

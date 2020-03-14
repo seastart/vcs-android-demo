@@ -3,6 +3,7 @@ package com.freewind.meetingdemo.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -51,12 +52,12 @@ public class LoginActivity extends AppCompatActivity {
                                 data.getData().getReg().getAddr(), new VcsServer.VcsMsgListener() {
                                     @Override
                                     public void InviteNotification(String accountId, String accountName, String targetId, String roomNo, String roomName, String roomPwd) {
-
+                                        Log.e("222222222", accountName);
                                     }
 
                                     @Override
                                     public void InviteConfirmNotification(String roomNo, String accId, Models.InviteResponse response) {
-
+                                        Log.e("222222222", response.name());
                                     }
                                 });
 

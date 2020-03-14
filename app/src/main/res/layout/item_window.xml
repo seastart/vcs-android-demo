@@ -2,113 +2,121 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:layout_width="wrap_content"
+    android:padding="15dp"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <FrameLayout
-        android:layout_width="264dp"
-        android:layout_height="148.5dp">
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-        <com.ook.android.showview.MeetingGLSurfaceView
-            android:id="@+id/gl_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+        <FrameLayout
+            app:layout_constraintDimensionRatio="16:9"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="0dp"
+            android:layout_height="0dp">
 
-<!--        <TextureView-->
-<!--            android:id="@+id/item_texture"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="match_parent" />-->
+            <com.ook.android.showview.MeetingGLSurfaceView
+                android:id="@+id/gl_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
 
-        <TextView
-            android:id="@+id/self_close_tv"
-            android:visibility="gone"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:background="#0F5E59"
-            android:textColor="#EBFA98"
-            android:text="远端关闭了视频"/>
+            <!--        <TextureView-->
+            <!--            android:id="@+id/item_texture"-->
+            <!--            android:layout_width="match_parent"-->
+            <!--            android:layout_height="match_parent" />-->
 
-        <TextView
-            android:id="@+id/other_close_tv"
-            android:visibility="gone"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#202064"
-            android:gravity="center"
-            android:textColor="#EBFA98"
-            android:text="本地屏蔽了他的视频"/>
+            <TextView
+                android:id="@+id/self_close_tv"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:background="#0F5E59"
+                android:textColor="#EBFA98"
+                android:text="远端关闭了视频"/>
 
-        <ImageView
-            android:id="@+id/self_mute_iv"
-            android:visibility="gone"
-            android:layout_margin="5dp"
-            android:layout_gravity="end"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@mipmap/icon_window_mute"
-            android:padding="6dp"
-            android:background="@drawable/slc_window_mute"/>
+            <TextView
+                android:id="@+id/other_close_tv"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#202064"
+                android:gravity="center"
+                android:textColor="#EBFA98"
+                android:text="本地屏蔽了他的视频"/>
 
-        <ImageView
-            android:id="@+id/other_mute_iv"
-            android:visibility="gone"
-            android:layout_margin="5dp"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@mipmap/icon_window_mute"
-            android:padding="6dp"
-            android:background="@drawable/slc_window_mute"/>
+            <ImageView
+                android:id="@+id/self_mute_iv"
+                android:visibility="gone"
+                android:layout_margin="5dp"
+                android:layout_gravity="end"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@mipmap/icon_window_mute"
+                android:padding="6dp"
+                android:background="@drawable/slc_window_mute"/>
 
-        <Button
-            android:id="@+id/mute_btn"
-            android:layout_gravity="bottom"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="打开静音"/>
+            <ImageView
+                android:id="@+id/other_mute_iv"
+                android:visibility="gone"
+                android:layout_margin="5dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@mipmap/icon_window_mute"
+                android:padding="6dp"
+                android:background="@drawable/slc_window_mute"/>
 
-        <Button
-            android:id="@+id/close_video_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="关闭视频"/>
+            <Button
+                android:id="@+id/mute_btn"
+                android:layout_gravity="bottom"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="打开静音"/>
 
+            <Button
+                android:id="@+id/close_video_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="关闭视频"/>
 
+            <Button
+                android:id="@+id/kick_out_btn"
+                android:layout_gravity="end"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="踢出"/>
 
-        <Button
-            android:id="@+id/kick_out_btn"
-            android:layout_gravity="end"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="踢出"/>
+            <Button
+                android:id="@+id/host_close_video_btn"
+                android:layout_gravity="end"
+                android:layout_marginTop="45dp"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="主持人关闭视频"/>
 
+            <Button
+                android:id="@+id/host_close_audio_btn"
+                android:layout_gravity="end"
+                android:layout_marginTop="90dp"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="主持人关闭音频"/>
 
-        <Button
-            android:id="@+id/host_close_video_btn"
-            android:layout_gravity="end"
-            android:layout_marginTop="45dp"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="主持人关闭视频"/>
+            <TextView
+                android:id="@+id/id_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="5dp"
+                android:textColor="#fff"
+                android:textSize="16sp" />
 
-        <Button
-            android:id="@+id/host_close_audio_btn"
-            android:layout_gravity="end"
-            android:layout_marginTop="90dp"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="主持人关闭音频"/>
+        </FrameLayout>
 
-        <TextView
-            android:id="@+id/id_tv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="5dp"
-            android:textColor="#fff"
-            android:textSize="16sp" />
-
-    </FrameLayout>
+    </android.support.constraint.ConstraintLayout>
 
     <LinearLayout
         android:layout_width="264dp"

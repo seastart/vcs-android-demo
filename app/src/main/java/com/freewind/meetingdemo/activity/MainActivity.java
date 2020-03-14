@@ -6,8 +6,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.AppCompatEditText;
 import android.view.View;
@@ -18,14 +18,10 @@ import android.widget.TextView;
 import com.freewind.meetingdemo.R;
 import com.freewind.meetingdemo.bean.RoomInfoBean;
 import com.freewind.meetingdemo.common.Constants;
-import com.freewind.meetingdemo.common.UserConfig;
 import com.freewind.meetingdemo.http.HttpCallBack;
 import com.freewind.meetingdemo.util.Requester;
 import com.freewind.meetingdemo.util.ToastUtil;
-import com.freewind.vcs.Models;
-import com.freewind.vcs.VcsServer;
 
-import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -76,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
         sampleRateEt = findViewById(R.id.sample_rate_et);
         hardDecoderBox = findViewById(R.id.hard_decoder_box);
         autoBox = findViewById(R.id.auto_check_box);
-        video720Box = findViewById(R.id.video_720_box);
-        video1080Box = findViewById(R.id.video_1080_box);
+        video720Box = findViewById(R.id.video_480_box);
+        video1080Box = findViewById(R.id.video_720_box);
         ipTv = findViewById(R.id.ip_addr_tv);
 
         ipTv.setText("ip地址：" + getIpAddress(this));
