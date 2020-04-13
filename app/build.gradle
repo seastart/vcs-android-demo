@@ -41,7 +41,5 @@ dependencies {
     implementation 'com.alibaba:fastjson:1.2.48'
     implementation 'com.loopj.android:android-async-http:1.4.9'
     implementation(name: 'VCS-Android-V1.1.40', ext: 'aar')
-
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.2'
-
 }
