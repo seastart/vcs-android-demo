@@ -8,30 +8,30 @@
 package com.freewind.meetingdemo.adapter;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.freewind.meetingdemo.R;
 import com.freewind.meetingdemo.activity.MeetingActivity;
 import com.freewind.meetingdemo.bean.MemberBean;
+import com.freewind.meetingdemo.util.DisplayUtil;
 import com.freewind.vcs.Models;
 import com.freewind.vcs.StreamTrack;
 import com.ook.android.VCS_EVENT_TYPE;
-import com.ook.android.YUVPlayer.YUVPlayerTextureView;
-import com.ook.android.showview.MeetingGLSurfaceView;
+import com.ook.android.ikPlayer.VcsPlayerGlTextureView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import static com.ook.android.VCS_EVENT_TYPE.CENTERINSIDE;
 
 public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHolder> {
     private List<MemberBean> memberList;
@@ -78,6 +78,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
             }
         }
     }
+
 
     @NonNull
     @Override
@@ -205,7 +206,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         holder.btn4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getClientId()), StreamTrack.TRACK_3);//track3
+                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getClientId()), 3);//track3
             }
         });
 
@@ -218,22 +219,33 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        public MeetingGLSurfaceView meetingGLSurfaceView;
+        public VcsPlayerGlTextureView meetingGLSurfaceView;
         TextView nameTv;
         ImageView selfMuteIv, otherMuteIv;
         TextView selfCloseTv, otherCloseTv;
         Button closeVideoBtn, muteBtn, kickBtn, hostCloseVideoBtn, hostCloseAudioBtn, btn1, btn2, btn3, btn4;
-        TextureView cameraTextureView;
+        FrameLayout frameLayout;
+//        TextureView cameraTextureView;
 
-        public YUVPlayerTextureView mTextureView;
+//        public YUVPlayerTextureView mTextureView;
 
         MyViewHolder(View convertView) {
             super(convertView);
+//            setIsRecyclable(false);
             meetingGLSurfaceView = convertView.findViewById(R.id.gl_view);
-            meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.CENTERINSIDE);
+            meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.FITXY);
+
+            ConstraintLayout.LayoutParams fullSmallLayoutParams = new ConstraintLayout.LayoutParams(
+                    (DisplayUtil.getInstance().getMobileHeight(context) - DisplayUtil.getInstance().getMobileWidth(context) / 4 * 9 / 16) * 16 / 9,
+                    DisplayUtil.getInstance().getMobileHeight(context) - DisplayUtil.getInstance().getMobileWidth(context) / 4 * 9 / 16
+            );
+            frameLayout = convertView.findViewById(R.id.fl_view);
+
+//            frameLayout.setLayoutParams(fullSmallLayoutParams);
+
 //            cameraTextureView = convertView.findViewById(R.id.item_texture);
 //            mTextureView = new YUVPlayerTextureView(context, cameraTextureView);
-//            mTextureView.setScaleType(VCS_EVENT_TYPE.CENTERINSIDE);
+//            mTextureView.setScaleType(VCS_EVENT_TYPE.CENTERCROP);
 
             nameTv = convertView.findViewById(R.id.id_tv);
             selfMuteIv = convertView.findViewById(R.id.self_mute_iv);

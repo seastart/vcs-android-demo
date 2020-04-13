@@ -5,11 +5,9 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.support.v7.widget.RecyclerView;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.util.SparseIntArray;
 import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
@@ -18,6 +16,8 @@ import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.freewind.meetingdemo.MyApplication;
 import com.freewind.meetingdemo.R;
@@ -38,9 +38,10 @@ import com.freewind.vcs.RoomServer;
 import com.freewind.vcs.StreamTrack;
 import com.ook.android.GLCameraView;
 import com.ook.android.VCS_EVENT_TYPE;
+import com.ook.android.YUVPlayer.YUVPlayerTextureView;
+import com.ook.android.ikPlayer.VcsPlayerGlTextureView;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**
@@ -51,9 +52,11 @@ import java.util.List;
 public class MeetingActivity extends PermissionActivity implements View.OnClickListener, RoomEvent, CameraPreview {
 
     RoomClient roomClient;
-    private GLCameraView cameraSurfaceView;
-    private TextureView cameraTextureView;
+//    private GLCameraView cameraSurfaceView;
+//    private TextureView cameraTextureView;
+    private VcsPlayerGlTextureView mTextureView;
 
+    Button sendChatBtn;
     Button lightBtn;
     Button switchBtn;
     Button closeSelfVideoBtn;
@@ -65,9 +68,9 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     FrameLayout rootFrameLayout;
     ProgressBar progressBar;
 
-    private int videoH = 720;
-    private int videoW = 1280;
-    private final int fps = 25;
+    private int videoH = 480;
+    private int videoW = 848;
+    private final int FPS = 20;//如果视频源来自摄像头，24FPS已经是肉眼极限，所以一般20帧的FPS就已经可以达到很好的用户体验了
     private int bitRate = 1024;
 
     private boolean isLight = false;//是否打开闪光灯
@@ -91,7 +94,6 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     public static final String CLOSE_OTHER_VIDEO = "close_other_video";
     public static final String SAMPLE_RATE = "sample_rate";
     public static final String HARD_DECODER = "hard_decoder";
-    public static final String AUTO_BITRATE = "auto_bitrate";
     public static final String ROOM_INFO = "room_info";
     public static final String VIDEO_LEVEL = "video_level";
 
@@ -110,32 +112,6 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     private boolean isRecvAudio = true, isRecvVideo = true;//默认接收
 
     private WindowAdapter windowAdapter;
-
-    protected static final int TIME_COUNT = 10;
-
-    //内部静态handler，避免内存泄漏，建议写法
-    private static class MyHandler extends Handler {
-        private final WeakReference<MeetingActivity> mActivity;
-
-        MyHandler(MeetingActivity activity) {
-            mActivity = new WeakReference<>(activity);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            final MeetingActivity activity = mActivity.get();
-            if (activity != null) {
-                switch (msg.what) {
-                    case TIME_COUNT:
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-    }
-
-    private MyHandler mHandler = new MyHandler(this);
 
     @Override
     public void onEnter(int result) {
@@ -183,8 +159,10 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     @Override
     public void onNotifyKickout() {
         Log.e(TAG, "onNotifyKickout   你被踢出了会议室");
-        finish();
+        onBackPressed();
     }
+
+    private SparseIntArray memberCourses = new SparseIntArray();//课件流用户
 
     /**
      * Account类部分字段
@@ -226,8 +204,27 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
             roomClient.enableRecvAudio(sdkNo, false);
         }
 
+        MemberBean memberBean2 = null;
+        for (Models.Stream stream : account.getStreamsList()){
+            if (stream.getChannelType() == Models.ChannelType.CT_Courseware){
+                memberBean2 = new MemberBean();
+                memberBean2.setClientId(sdkNo + "" + stream.getId());
+                memberBean2.setAccountId(account.getId());
+                memberBean2.setCloseVideo(account.getVideoState());
+                memberBean2.setMute(account.getAudioState());
+
+                memberCourses.put(sdkNo, stream.getId());
+
+                roomClient.setStreamTrack(sdkNo, stream.getId()|1);
+                break;
+            }
+        }
+
         if (windowAdapter.getMemberList().isEmpty()) {
             windowAdapter.addItem(memberBean);
+            if (memberBean2 != null){
+                windowAdapter.addItem(memberBean2);
+            }
         } else {
             int count = 0;
             for (MemberBean s : windowAdapter.getMemberList()) {
@@ -238,6 +235,9 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
             }
             if (count == 0) {
                 windowAdapter.addItem(memberBean);
+                if (memberBean2 != null){
+                    windowAdapter.addItem(memberBean2);
+                }
             }
         }
     }
@@ -251,6 +251,10 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
             for (MemberBean s : windowAdapter.getMemberList()) {
                 if (s.getClientId().equals(sdkNo + "")) {
                     windowAdapter.removeItem(sdkNo + "");
+                    int id = memberCourses.get(sdkNo, -1);
+                    if (id != -1) {
+                        windowAdapter.removeItem(sdkNo + "" + id);
+                    }
                     break;
                 }
             }
@@ -266,25 +270,27 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     public void onNotifyEnd(String roomId) {
         Log.e(TAG, "onNotifyEnd");
         showToast("主持人结束会议");
-        finish();
+        onBackPressed();
     }
 
     @Override
     public void onFrame(byte[] ost, byte[] tnd, byte[] trd, byte[] yuv, int width, int height, int fourcc, int clientId, int mask) {
         Log.e("3333333333", "onFrame  " + "  clientId: " + clientId + "   " + width + " " + height + "   mask:" + mask);
+        final WindowAdapter.MyViewHolder holder;
 
-        final WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(clientId + "");
+        if (memberCourses.get(clientId) == mask){
+            holder = windowAdapter.getHolders().get(clientId + "" + mask);
+        }else {
+            holder = windowAdapter.getHolders().get(clientId + "");
+        }
         if (holder != null && holder.meetingGLSurfaceView != null) {
             holder.meetingGLSurfaceView.update(width, height, fourcc);
             holder.meetingGLSurfaceView.update(ost, tnd, trd, fourcc);
         }
+
 //        if (holder != null && holder.mTextureView != null) {
 //            holder.mTextureView.setYuvDataSize(width, height);
-//            if (fourcc == VCS_EVENT_TYPE.YUVI420){
-//                holder.mTextureView.feedData(yuv,0); //0 -> I420  1 -> NV12  2 -> NV21
-//            }else {
-//                holder.mTextureView.feedData(yuv,1);
-//            }
+//            holder.mTextureView.feedData(ost, tnd, trd,fourcc);
 //        }
     }
 
@@ -296,12 +302,22 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         uploadTv.setText(info);
     }
 
+    /**
+     * {
+     *     "recvinfo": [
+     *         {
+     *             "linkid": 12340001,  对方Sdkno
+     *             "recv": 4127 接收包信息
+     *             "comp": 13,  补偿 高 网络不稳定
+     *             "losf": 0,   丢失包信息  高 就是网络差
+     *             "lrl": 6.8, //短时端到端丢包率（对方手机到你手机）
+     *             "lrd": 8.9 //短时下行丢包率（服务器到你）
+     *         }
+     *     ]
+     * }
+     */
     @Override
     public void onRecvInfo(String info) {
-        // 60000002::recv=10144 comp=505 losf=91 */
-        // 60000002=对方id, recv=接收包信息, comp=补偿 正常0, losf=丢失包信息 */
-        //comp 高 网络不稳定
-        //losf 高 就是网络差
         losTv.setText(info);
     }
 
@@ -441,6 +457,14 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
 
     }
 
+    /**
+     * 聊天消息事件
+     */
+    @Override
+    public void onNotifyChat(RoomServer.ChatNotify chatNotify) {
+        showToast(chatNotify.getAccountName() + ":" + chatNotify.getMessage());
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -461,15 +485,18 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     private void initView() {
         setContentView(R.layout.activity_meeting);
 
+        sendChatBtn = findViewById(R.id.send_msg_btn);
         lightBtn = findViewById(R.id.camera_light_btn);
         switchBtn = findViewById(R.id.camera_switch_btn);
         closeSelfVideoBtn = findViewById(R.id.close_self_video_btn);
         closeSelfAudioBtn = findViewById(R.id.close_self_audio_btn);
-        cameraSurfaceView = findViewById(R.id.cameraSurfaceView);
+//        cameraSurfaceView = findViewById(R.id.cameraSurfaceView);
         rootFrameLayout = findViewById(R.id.root);
         progressBar = findViewById(R.id.progress_bar);
-//        cameraTextureView = findViewById(R.id.cameraTextureView);
+        mTextureView = findViewById(R.id.cameraTextureView);
+        mTextureView.setMirror(1);//0 镜像，不做任何操作 默认是0  1 左右，2上下
 
+        sendChatBtn.setOnClickListener(this);
         customMsgTv = findViewById(R.id.custom_msg_tv);
         closePreviewTv = findViewById(R.id.close_preview_tv);
         windowRcView = findViewById(R.id.window_rcview);
@@ -508,8 +535,8 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
 
         if (level == 0){
             videoH = 480;
-            videoW = 856;
-            bitRate = 400;
+            videoW = 640;
+            bitRate = 512;
         }else{
             videoH = 720;
             videoW = 1280;
@@ -543,7 +570,8 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
                 UserConfig.getUserInfo().getData().getAccount().getId(),
                 UserConfig.getUserInfo().getData().getAccount().getRoom().getSdk_no(),
                 UserConfig.getUserInfo().getData().getAccount().getName(),
-                UserConfig.getUserInfo().getData().getAccount().getNickname());
+                UserConfig.getUserInfo().getData().getAccount().getNickname(),
+                UserConfig.getUserInfo().getData().getAccount().getPortrait());
         roomClient.setRoom(meetingBean.getRoom().getId(), roomSdkNo + "");
 
         roomClient.setSessionId(meetingBean.getSession());
@@ -552,10 +580,15 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         roomClient.setMeetingAddr(meetingBean.getMeeting_host());
         roomClient.setMeetingPort(meetingBean.getMeeting_port());
 
-        File file = getExternalFilesDir(null);
-        String filePath = file.getAbsolutePath();
-        roomClient.setDebugLog(filePath);
+        //测试用，保存流媒体信息
+//        File file = getExternalFilesDir(null);
+//        String filePath = file.getAbsolutePath();
+//        roomClient.setDebugLog(filePath);
 
+        //测试用，保存流信息
+//        File file = getExternalFilesDir(null);
+//        String filePath = file.getAbsolutePath();
+//        roomClient.getApi().VCS_setSaveFrameForTest(1, filePath);
 
         roomClient.setNeedOnFrameYUV(false);//是否需要onFrame回调里YUV数组数据回调，不使用的话建议关闭
         roomClient.useMultiStream(true);//设置开启多流
@@ -572,11 +605,13 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
 //        encoderList.add(bean);
 //        roomClient.setDuplicateUploadConfig(encoderList);
         roomClient.setResolutionSize(1280, 720);
-        roomClient.setVideoOutput(videoW, videoH, fps, bitRate);//设置视频分辨率宽高，帧率，码率
+        //输出分辨率宽必须是16的倍数,高必须是2的倍数,否则容易出现绿边等问题
+        roomClient.setMinVideoOutput(360, 500, 15);
+        roomClient.setVideoOutput(videoW, videoH, FPS, bitRate);//设置视频分辨率宽高，帧率，码率
         roomClient.setAgcAec(agc, aec);//设置AGC,AEC
-        roomClient.setFps(fps);//设置帧率
+        roomClient.setFps(FPS);//设置帧率
 
-        roomClient.openCamera(cameraSurfaceView);//设置预览view
+        roomClient.openCamera(null, this);//设置预览view
 
         roomClient.enableXDelay(true);//自适应延迟
         roomClient.useHwDecoder(hardDecoder);//是否硬解码
@@ -608,7 +643,12 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         roomClient.setCenterInside(true);
 
         roomClient.open();
+    }
 
+    @Override
+    public void onBackPressed() {
+
+        super.onBackPressed();
     }
 
     @Override
@@ -619,12 +659,12 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         }
     }
 
-    //闪光灯开关
-    private void switchLight() {
-        if (isFront) {
-            showToast("后置摄像头才能开启闪光灯");
-            return;
-        }
+        //闪光灯开关
+        private void switchLight() {
+            if (isFront) {
+                showToast("后置摄像头才能开启闪光灯");
+                return;
+            }
         isLight = !isLight;
         roomClient.camera_Light(isLight);
         if (isLight) {
@@ -641,8 +681,14 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         if (isFront) {
             switchBtn.setText("后置");
             lightBtn.setText("开闪光灯");
+            if (mTextureView != null){
+                mTextureView.setMirror(1);
+            }
         } else {
             switchBtn.setText("前置");
+            if (mTextureView != null) {
+                mTextureView.setMirror(0);
+            }
         }
     }
 
@@ -653,11 +699,6 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
 
     //设置是否接收某人音频
     public void muteOtherAudio(String clientId, boolean isMute){
-//        if (!isMute){
-//            roomClient.setPicker(Integer.valueOf(clientId), StreamFilter.FILTER_AUDIO);
-//        }else {
-//            roomClient.setFilter(Integer.valueOf(clientId), StreamFilter.FILTER_AUDIO);
-//        }
         roomClient.enableRecvAudio(Integer.parseInt(clientId), !isMute);
     }
 
@@ -737,9 +778,8 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.camera_light_btn://闪光灯开关
+//                startActivity(new Intent(this, RegisterActivity.class));
                 switchLight();
-//                flag = !flag;
-//                roomClient.hostSetWhiteboard(flag);
                 break;
             case R.id.camera_switch_btn://切换摄像头
                 switchCamera();
@@ -747,10 +787,8 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
             case R.id.change_orientation_btn:
                 if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {//当前是横屏
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);//竖屏
-                    roomClient.setCenterInside(true);
                 }else {//当前是竖屏
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//横屏
-                    roomClient.setCenterInside(false);
                 }
                 break;
             case R.id.close_self_video_btn://设置自己的视频，是否发送
@@ -785,6 +823,9 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
                 }
                 windowAdapter.notifyDataSetChanged();
                 break;
+            case R.id.send_msg_btn:
+                roomClient.sendChatMsg(null, "你好");
+                break;
         }
     }
 
@@ -804,18 +845,18 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     public void onPreviewFrame(byte[] yuv, int width, int height, long stamp, int format) {
         //预览数据回调
         //camera 数据回调 NV21 这个通用适配所有手机  format 默认ImageFormat.NV21
-        Log.e("7777777", stamp + "");
+
+        if (mTextureView != null){
+            mTextureView.update(width, height, format);
+            mTextureView.update(yuv, format);
+        }
 
 //        if (mTextureView != null){
-//            mTextureView.setYuvDataSize(width, height);
-//            if (format == VCS_EVENT_TYPE.YUVNV21){
-//                mTextureView.feedData(yuv,2);
-//            }else if (format == VCS_EVENT_TYPE.YUVNV12){
-//                mTextureView.feedData(yuv,1);
-//            }else {//I420
-//                mTextureView.feedData(yuv,0);
+//            if (!initCameraView){
+//                mTextureView.update(width, height, format);
+//                initCameraView = true;
 //            }
+//            mTextureView.update(yuv, format);
 //        }
-
     }
 }

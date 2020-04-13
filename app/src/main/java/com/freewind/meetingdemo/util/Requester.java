@@ -41,22 +41,21 @@ public class Requester {
      * 登陆
      *
      * @param mobile   手机
-     * @param code     验证码（与密码二选一）
+//     * @param code     验证码（与密码二选一）
      * @param password 密码（与验证码二选一）
      */
-    public static void login(String mobile, String password, String code, final HttpCallBack<UserInfoBean> callBack) {
+    public static void login(String mobile, String password, final HttpCallBack<UserInfoBean> callBack) {
         String url = Constants.API_HOST + "account/login";
         RequestParams params = new RequestParams();
         params.put("loginname", mobile);
-        params.put("password", MD5Util.MD5Encode(password));
+        params.put("password", PwdUtil.hmacSha1(mobile + password));
         params.put("dev_type", 2);
         HttpHelper.executePost(UserInfoBean.class, url, params, callBack);
     }
 
     /**
      * 获取手机验证码
-     *
-     * @param mobile 手机号
+     * @param mobile 手机号：1-注册；2-重置密码
      */
     public static void getCode(int user_for,String mobile, final HttpCallBack<BaseBean> callBack) {
         String url = Constants.API_HOST + "account/vcode";
@@ -72,16 +71,28 @@ public class Requester {
     /**
      * 注册
      */
-    public static void register(String name, String password, String nickname, String mobile, String code, HttpCallBack<UserInfoBean> callBack) {
+    public static void register(String mobile, String password, String code, HttpCallBack<UserInfoBean> callBack) {
         String url = Constants.API_HOST + "account/register";
         RequestParams params = new RequestParams();
-        params.put("name", name);
-        params.put("password", password);
-        params.put("nickname", nickname);
+        params.put("name", mobile);
+        params.put("password", PwdUtil.hmacSha1(mobile + password));
+        params.put("nickname", mobile);
         params.put("mobile", mobile);
         params.put("type", 1);
         params.put("vcode", code);
         HttpHelper.executePost(UserInfoBean.class, url, params, callBack);
+    }
+
+    /**
+     * 修改密码/忘记密码
+     */
+    public static void rePassWord(String mobile, String code, String password, final HttpCallBack<BaseBean> callBack) {
+        String url = Constants.API_HOST + "account/reset-password";
+        RequestParams params = new RequestParams();
+        params.put("name", mobile);
+        params.put("vcode", code);
+        params.put("new_password", PwdUtil.hmacSha1(mobile + password));
+        HttpHelper.executePost(BaseBean.class, url, params, callBack);
     }
 }
 

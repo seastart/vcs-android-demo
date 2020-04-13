@@ -5,9 +5,9 @@ android {
     defaultConfig {
         applicationId "com.freewind.meetingdemo"
         minSdkVersion 21
-        targetSdkVersion 26
+        targetSdkVersion 28
         versionCode 1
-        versionName "1.1.36"
+        versionName "1.1.40"
 
         ndk {
             abiFilters "armeabi-v7a"
@@ -35,10 +35,13 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support:recyclerview-v7:28.0.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     implementation 'com.alibaba:fastjson:1.2.48'
     implementation 'com.loopj.android:android-async-http:1.4.9'
-    implementation(name: 'VCS-Android-SDK-V1.1.36', ext: 'aar')
+    implementation(name: 'VCS-Android-V1.1.40', ext: 'aar')
+
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.2'
+
 }

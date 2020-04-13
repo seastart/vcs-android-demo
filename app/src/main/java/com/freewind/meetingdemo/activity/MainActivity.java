@@ -7,14 +7,16 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatButton;
-import android.support.v7.widget.AppCompatEditText;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
+import androidx.appcompat.widget.AppCompatEditText;
+
+import com.freewind.meetingdemo.MyApplication;
 import com.freewind.meetingdemo.R;
 import com.freewind.meetingdemo.bean.RoomInfoBean;
 import com.freewind.meetingdemo.common.Constants;
@@ -48,11 +50,9 @@ public class MainActivity extends AppCompatActivity {
     CheckBox closeOtherVideoBox;
     CheckBox closeOtherAudioBox;
     CheckBox hardDecoderBox;
-    CheckBox autoBox;
     TextView ipTv;
     RadioButton video720Box;
     RadioButton video1080Box;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,12 +71,11 @@ public class MainActivity extends AppCompatActivity {
         closeOtherAudioBox = findViewById(R.id.audio_other_box);
         sampleRateEt = findViewById(R.id.sample_rate_et);
         hardDecoderBox = findViewById(R.id.hard_decoder_box);
-        autoBox = findViewById(R.id.auto_check_box);
         video720Box = findViewById(R.id.video_480_box);
         video1080Box = findViewById(R.id.video_720_box);
         ipTv = findViewById(R.id.ip_addr_tv);
 
-        ipTv.setText("ip地址：" + getIpAddress(this));
+        ipTv.setText("ip地址：" + getIpAddress(MyApplication.getContext()));
 
         startBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -122,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public static String getIpAddress(Context context){
+    public String getIpAddress(Context context){
         NetworkInfo info = ((ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
         if (info != null && info.isConnected()) {
@@ -156,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    private static String intIP2StringIP(int ip) {
+    private String intIP2StringIP(int ip) {
         return (ip & 0xFF) + "." +
                 ((ip >> 8) & 0xFF) + "." +
                 ((ip >> 16) & 0xFF) + "." +
@@ -164,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // 获取有限网IP
-    private static String getLocalIp() {
+    private String getLocalIp() {
         try {
             for (Enumeration<NetworkInterface> en = NetworkInterface
                     .getNetworkInterfaces(); en.hasMoreElements(); ) {

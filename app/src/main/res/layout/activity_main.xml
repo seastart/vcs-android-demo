@@ -19,7 +19,7 @@
             android:text="地址："
             style="@style/LabelStyle"  />
 
-        <android.support.v7.widget.AppCompatEditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/ip_et"
             android:hint="输入地址"
             android:text="120.26.56.75"
@@ -39,7 +39,7 @@
             android:text="端口号："
             style="@style/LabelStyle"  />
 
-        <android.support.v7.widget.AppCompatEditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/port_et"
             android:hint="输入端口号"
             android:text="8006"
@@ -57,9 +57,9 @@
             android:text="房间号："
             style="@style/LabelStyle" />
 
-        <android.support.v7.widget.AppCompatEditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/room_no_et"
-            android:text="915105013005"
+            android:text="71975560"
             android:hint="输入房间号"
             android:inputType="text"
             style="@style/InputStyle" />
@@ -76,7 +76,7 @@
             android:text="AGC："
             style="@style/LabelStyle"  />
 
-        <android.support.v7.widget.AppCompatEditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/agc_et"
             android:hint="输入AGC"
             android:text="10000"
@@ -94,7 +94,7 @@
             android:text="AEC："
             style="@style/LabelStyle"  />
 
-        <android.support.v7.widget.AppCompatEditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/aec_et"
             android:hint="输入AEC"
             android:text="12"
@@ -112,7 +112,7 @@
             android:text="音频采样率："
             style="@style/LabelStyle"  />
 
-        <android.support.v7.widget.AppCompatEditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/sample_rate_et"
             android:hint="输入音频采样率"
             android:text="48000"
@@ -130,7 +130,7 @@
             android:text="调试地址："
             style="@style/LabelStyle" />
 
-        <android.support.v7.widget.AppCompatEditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/debug_addr_et"
             android:hint="输入远程调试地址"
             android:text=""
@@ -152,25 +152,6 @@
 
         <CheckBox
             android:id="@+id/debug_check_box"
-            android:focusable="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_marginTop="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:text="码率自适应    ："
-            style="@style/LabelStyle" />
-
-        <CheckBox
-            android:id="@+id/auto_check_box"
             android:focusable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
@@ -291,7 +272,7 @@
 
     </RadioGroup>
 
-    <android.support.v7.widget.AppCompatButton
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/start_btn"
         android:focusable="true"
         android:layout_marginTop="15dp"

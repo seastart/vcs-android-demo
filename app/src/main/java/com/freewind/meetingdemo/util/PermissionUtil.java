@@ -3,8 +3,9 @@ package com.freewind.meetingdemo.util;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Binder;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.PermissionChecker;
+
+import androidx.core.content.ContextCompat;
+import androidx.core.content.PermissionChecker;
 
 /**
  * author superK

@@ -19,3 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+-dontwarn com.google.protobuf.**
+-dontwarn google.protobuf.**
+
+-keep class com.freewind.vcs.**{*;}
+-keep class com.ook.android.**{*;}

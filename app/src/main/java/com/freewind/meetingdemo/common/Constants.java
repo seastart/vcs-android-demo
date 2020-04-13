@@ -11,7 +11,7 @@ public class Constants {
     public static final int SEND_VIDEO_OR_AUDIO = 0;//打开视频/音频，发送视频/音频
 
     //服务器相关配置
-//    public static String SERVER_HOST = "http://101.37.67.56/meeting/";
+//    public static String SERVER_HOST = "http://101.37.67.56:5000/";
     public static String SERVER_HOST = "http://47.99.243.249:5000/";
 //    public static String SERVER_HOST = "http://192.168.43.113:5000/";
 

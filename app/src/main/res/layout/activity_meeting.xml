@@ -7,12 +7,15 @@
     android:id="@+id/root"
     tools:context=".activity.MeetingActivity">
 
-    <com.ook.android.GLCameraView
-        android:id="@+id/cameraSurfaceView"
+<!--    <com.ook.android.GLCameraView-->
+<!--        android:id="@+id/cameraSurfaceView"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent" />-->
+
+    <com.ook.android.ikPlayer.VcsPlayerGlTextureView
+        android:id="@+id/cameraTextureView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
-<!--    <include layout="@layout/layout_preview_portrait"/>-->
 
     <TextView
         android:id="@+id/close_preview_tv"
@@ -25,20 +28,26 @@
         android:textSize="18sp"
         android:text="关闭预览"/>
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/window_rcview"
-        android:layout_marginTop="22dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:overScrollMode="never"
-        app:layoutManager="android.support.v7.widget.GridLayoutManager"
-        app:spanCount="2"
-        android:paddingLeft="3dp"
-        android:paddingRight="3dp" />
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="2" />
 
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/send_msg_btn"
+            app:layout_constraintBottom_toBottomOf="@+id/camera_switch_btn"
+            app:layout_constraintEnd_toStartOf="@+id/camera_switch_btn"
+            android:layout_marginEnd="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="发送聊天消息你好"/>
 
         <Button
             android:id="@+id/camera_switch_btn"
@@ -107,11 +116,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="横竖屏变换"
-            android:layout_marginBottom="5dp"
-            app:layout_constraintBottom_toTopOf="@+id/not_recv_video_btn"
-            app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
+            android:layout_margin="10dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <TextView
         android:id="@+id/custom_msg_tv"

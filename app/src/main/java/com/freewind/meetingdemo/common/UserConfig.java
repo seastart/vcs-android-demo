@@ -24,11 +24,12 @@ public class UserConfig {
     private static final String SP_PASSWORD = "password";
     private static final String SP_ADMIN = "admin";
     private static final String SP_USER = "user";
+    private static final String SP_ADDR = "service_addr1";
+
 //    public static final String
 
     private static UserInfoBean userInfo;
     private static SharedPreferences sp;
-
 
 
     public static void init(Context context) {
@@ -36,6 +37,15 @@ public class UserConfig {
             sp = context.getSharedPreferences("UserConfig", Context.MODE_PRIVATE);
         }
     }
+
+    public static String getSpAddr() {
+        return sp.getString(SP_ADDR, Constants.SERVER_HOST);
+    }
+
+    public static void setSpAddr(String b) {
+        sp.edit().putString(SP_ADDR, b).apply();
+    }
+
 
     public static boolean isFirstUse() {
         return sp.getBoolean(SP_IS_FIRST_USE, true);

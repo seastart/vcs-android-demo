@@ -3,9 +3,10 @@ package com.freewind.meetingdemo.activity;
 import android.Manifest;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.freewind.meetingdemo.util.PermissionUtil;
 import com.freewind.meetingdemo.util.ToastUtil;

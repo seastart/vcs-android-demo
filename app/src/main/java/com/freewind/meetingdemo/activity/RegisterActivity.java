@@ -1,21 +1,20 @@
 package com.freewind.meetingdemo.activity;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.freewind.meetingdemo.R;
 import com.freewind.meetingdemo.base.BaseBean;
 import com.freewind.meetingdemo.bean.UserInfoBean;
 import com.freewind.meetingdemo.common.UserConfig;
 import com.freewind.meetingdemo.http.HttpCallBack;
-import com.freewind.meetingdemo.util.MD5Util;
 import com.freewind.meetingdemo.util.Requester;
 import com.freewind.meetingdemo.util.ToastUtil;
 
@@ -27,6 +26,8 @@ public class RegisterActivity extends AppCompatActivity {
     EditText pwdEt;
     TextView backTv;
     Button registerBtn;
+
+    public static final String TYPE = "type";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +59,12 @@ public class RegisterActivity extends AppCompatActivity {
         registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                register();
+                int type = getIntent().getIntExtra(TYPE, 0);
+                if (type == 0){
+                    register();
+                }else {
+                    forget();
+                }
             }
         });
     }
@@ -70,7 +76,8 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        Requester.getCode(1,mobileEt.getText().toString(), new HttpCallBack<BaseBean>() {
+        int type = getIntent().getIntExtra(TYPE, 0);
+        Requester.getCode(type == 0 ? 1 : 2,mobileEt.getText().toString(), new HttpCallBack<BaseBean>() {
             @Override
             public void onSucceed(BaseBean data) {
                 ToastUtil.getInstance().showShortToast("验证码发送成功，请注意查收");
@@ -83,9 +90,17 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
+    private void forget(){
+        Requester.rePassWord(mobileEt.getText().toString(), codeEt.getText().toString(), pwdEt.getText().toString(), new HttpCallBack<BaseBean>() {
+            @Override
+            public void onSucceed(BaseBean data) {
+                finish();
+            }
+        });
+    }
+
     private void register() {
-        String pwd = MD5Util.MD5Encode(pwdEt.getText().toString(), "utf8");
-        Requester.register(mobileEt.getText().toString(), pwd, mobileEt.getText().toString(), mobileEt.getText().toString(), codeEt.getText().toString(), new HttpCallBack<UserInfoBean>() {
+        Requester.register(mobileEt.getText().toString(), pwdEt.getText().toString(), codeEt.getText().toString(), new HttpCallBack<UserInfoBean>() {
             @Override
             public void onSucceed(UserInfoBean data) {
                 super.onSucceed(data);
@@ -94,16 +109,6 @@ public class RegisterActivity extends AppCompatActivity {
                 UserConfig.setRequestToken(data.getData().getToken());
                 UserConfig.updateUserInfo(data);
                 startActivity(new Intent(RegisterActivity.this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK));
-            }
-
-            @Override
-            protected void onNetError() {
-                super.onNetError();
-            }
-
-            @Override
-            protected void onComplete(boolean success) {
-
             }
         });
     }

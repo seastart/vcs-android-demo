@@ -2,8 +2,9 @@ package com.freewind.meetingdemo.activity;
 
 import android.content.Intent;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.freewind.meetingdemo.R;
 import com.freewind.meetingdemo.common.UserConfig;
