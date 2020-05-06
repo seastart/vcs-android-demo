@@ -31,4 +31,8 @@
         android:layout_height="wrap_content"
         android:text="保存"/>
 
+    <com.ook.android.ikPlayer.VcsPlayerGlTextureView
+        android:layout_width="match_parent"
+        android:layout_height="200dp"/>
+
 </LinearLayout>

@@ -25,7 +25,6 @@ import com.freewind.meetingdemo.activity.MeetingActivity;
 import com.freewind.meetingdemo.bean.MemberBean;
 import com.freewind.meetingdemo.util.DisplayUtil;
 import com.freewind.vcs.Models;
-import com.freewind.vcs.StreamTrack;
 import com.ook.android.VCS_EVENT_TYPE;
 import com.ook.android.ikPlayer.VcsPlayerGlTextureView;
 
@@ -68,7 +67,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
             return;
         }
         for (int position = 0; position < memberList.size(); position++){
-            if (clienId.equals(memberList.get(position).getClientId())){
+            if (clienId.equals(memberList.get(position).getSdkNo())){
 //                holders.get(clienId).itemFl.removeView(holders.get(clienId).meetingGLSurfaceView);
                 holders.remove(clienId);
                 notifyItemRemoved(position);
@@ -92,7 +91,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         final MemberBean memberBean = memberList.get(position);
 //        holder.meetingGLSurfaceView.setScaleType(CENTERINSIDE);
         //        holder.img.setScaleType(CENTERCROP);
-        holder.nameTv.setText(memberBean.getClientId());
+        holder.nameTv.setText(memberBean.getSdkNo());
 
         if (memberBean.isCloseOtherVideo()){
 //            holder.otherCloseTv.setVisibility(View.VISIBLE);
@@ -142,7 +141,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
             public void onClick(View view) {
                 memberBean.setCloseOtherAudio(!memberBean.isCloseOtherAudio());
                 notifyItemChanged(position);
-                ((MeetingActivity)context).muteOtherAudio(memberBean.getClientId(), memberBean.isCloseOtherAudio());
+                ((MeetingActivity)context).muteOtherAudio(memberBean.getSdkNo(), memberBean.isCloseOtherAudio());
             }
         });
 
@@ -151,7 +150,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
             public void onClick(View view) {
                 memberBean.setCloseOtherVideo(!memberBean.isCloseOtherVideo());
                 notifyItemChanged(position);
-                ((MeetingActivity)context).closeOtherVideo(memberBean.getClientId(), memberBean.isCloseOtherVideo());
+                ((MeetingActivity)context).closeOtherVideo(memberBean.getSdkNo(), memberBean.isCloseOtherVideo());
             }
         });
 
@@ -185,32 +184,32 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         holder.btn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getClientId()), StreamTrack.TRACK_0);//track0
+                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getSdkNo()), 1);//track0
             }
         });
 
         holder.btn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getClientId()), StreamTrack.TRACK_1);//track1
+                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getSdkNo()), 2);//track1
             }
         });
 
         holder.btn3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getClientId()), StreamTrack.TRACK_2);//track2
+                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getSdkNo()), 4);//track2
             }
         });
 
         holder.btn4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getClientId()), 3);//track3
+                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getSdkNo()), 3);//track3
             }
         });
 
-        holders.put(memberBean.getClientId(), holder);
+        holders.put(memberBean.getSdkNo(), holder);
     }
 
     @Override
@@ -242,10 +241,6 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
             frameLayout = convertView.findViewById(R.id.fl_view);
 
 //            frameLayout.setLayoutParams(fullSmallLayoutParams);
-
-//            cameraTextureView = convertView.findViewById(R.id.item_texture);
-//            mTextureView = new YUVPlayerTextureView(context, cameraTextureView);
-//            mTextureView.setScaleType(VCS_EVENT_TYPE.CENTERCROP);
 
             nameTv = convertView.findViewById(R.id.id_tv);
             selfMuteIv = convertView.findViewById(R.id.self_mute_iv);

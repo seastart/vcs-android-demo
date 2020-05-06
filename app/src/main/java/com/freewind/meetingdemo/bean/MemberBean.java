@@ -19,7 +19,7 @@ public class MemberBean implements Serializable {
     private Models.DeviceState closeVideo;
     private boolean closeOtherVideo;//本地是否关闭视频
     private boolean closeOtherAudio;//本地是否关闭音频
-    private String clientId;
+    private String sdkNo;
     private String accountId;
 
     public boolean isCloseOtherAudio() {
@@ -63,12 +63,12 @@ public class MemberBean implements Serializable {
         this.closeVideo = deviceState;
     }
 
-    public String getClientId() {
-        return clientId;
+    public String getSdkNo() {
+        return sdkNo;
     }
 
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
+    public void setSdkNo(String sdkNo) {
+        this.sdkNo = sdkNo;
     }
 
     public String getAccountId() {

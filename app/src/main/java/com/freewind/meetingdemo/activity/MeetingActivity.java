@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.util.SparseIntArray;
-import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -30,18 +29,13 @@ import com.freewind.meetingdemo.common.UserConfig;
 import com.freewind.meetingdemo.http.HttpCallBack;
 import com.freewind.meetingdemo.util.Requester;
 import com.freewind.meetingdemo.util.ToastUtil;
-import com.freewind.vcs.CameraPreview;
 import com.freewind.vcs.Models;
 import com.freewind.vcs.RoomClient;
 import com.freewind.vcs.RoomEvent;
 import com.freewind.vcs.RoomServer;
-import com.freewind.vcs.StreamTrack;
-import com.ook.android.GLCameraView;
 import com.ook.android.VCS_EVENT_TYPE;
-import com.ook.android.YUVPlayer.YUVPlayerTextureView;
 import com.ook.android.ikPlayer.VcsPlayerGlTextureView;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -49,7 +43,7 @@ import java.util.List;
  * update_at 2019/7/30
  * description
  */
-public class MeetingActivity extends PermissionActivity implements View.OnClickListener, RoomEvent, CameraPreview {
+public class MeetingActivity extends PermissionActivity implements View.OnClickListener, RoomEvent {
 
     RoomClient roomClient;
 //    private GLCameraView cameraSurfaceView;
@@ -70,7 +64,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
 
     private int videoH = 480;
     private int videoW = 848;
-    private final int FPS = 20;//如果视频源来自摄像头，24FPS已经是肉眼极限，所以一般20帧的FPS就已经可以达到很好的用户体验了
+    private static final int FPS = 20;//如果视频源来自摄像头，24FPS已经是肉眼极限，所以一般20帧的FPS就已经可以达到很好的用户体验了
     private int bitRate = 1024;
 
     private boolean isLight = false;//是否打开闪光灯
@@ -81,7 +75,6 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     private String trackServer = "";
     private boolean openDebug = false;
     private int roomSdkNo;
-    private int mySdkNo;
     private static String TAG = "4444444444";
 
     public static final String DEBUG_ADDR = "debug_addr";
@@ -116,6 +109,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     @Override
     public void onEnter(int result) {
         //如果result != 0 则表示服务器上的token已经失效，需要进行重新进入房间的逻辑
+        Log.e("2222222", result + "");
         if (result!=0){
             ToastUtil.getInstance().showLongToast("正在进行重连");
             if (progressBar.getVisibility() == View.VISIBLE){
@@ -157,7 +151,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     }
 
     @Override
-    public void onNotifyKickout() {
+    public void onNotifyKickOut(String accountId) {
         Log.e(TAG, "onNotifyKickout   你被踢出了会议室");
         onBackPressed();
     }
@@ -181,7 +175,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         Log.e(TAG, "onNotifyEnter: 有人进入房间" + "  sdkno: " + sdkNo);
 
         final MemberBean memberBean = new MemberBean();
-        memberBean.setClientId(sdkNo + "");
+        memberBean.setSdkNo(sdkNo + "");
         memberBean.setAccountId(account.getId());
         memberBean.setCloseVideo(account.getVideoState());
         memberBean.setMute(account.getAudioState());
@@ -208,7 +202,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         for (Models.Stream stream : account.getStreamsList()){
             if (stream.getChannelType() == Models.ChannelType.CT_Courseware){
                 memberBean2 = new MemberBean();
-                memberBean2.setClientId(sdkNo + "" + stream.getId());
+                memberBean2.setSdkNo(sdkNo + "" + stream.getId());
                 memberBean2.setAccountId(account.getId());
                 memberBean2.setCloseVideo(account.getVideoState());
                 memberBean2.setMute(account.getAudioState());
@@ -228,7 +222,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         } else {
             int count = 0;
             for (MemberBean s : windowAdapter.getMemberList()) {
-                if (s.getClientId().equals("" + sdkNo)) {
+                if (s.getSdkNo().equals("" + sdkNo)) {
                     count++;
                     break;
                 }
@@ -249,7 +243,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
 
         if (!windowAdapter.getMemberList().isEmpty()) {
             for (MemberBean s : windowAdapter.getMemberList()) {
-                if (s.getClientId().equals(sdkNo + "")) {
+                if (s.getSdkNo().equals(sdkNo + "")) {
                     windowAdapter.removeItem(sdkNo + "");
                     int id = memberCourses.get(sdkNo, -1);
                     if (id != -1) {
@@ -274,8 +268,8 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
     }
 
     @Override
-    public void onFrame(byte[] ost, byte[] tnd, byte[] trd, byte[] yuv, int width, int height, int fourcc, int clientId, int mask) {
-        Log.e("3333333333", "onFrame  " + "  clientId: " + clientId + "   " + width + " " + height + "   mask:" + mask);
+    public void onFrame(byte[] ost, byte[] tnd, byte[] trd, int width, int height, int format, int clientId, int mask) {
+//        Log.e("3333333333", "onFrame  " + "  clientId: " + clientId + "   " + width + " " + height + "   mask:" + mask);
         final WindowAdapter.MyViewHolder holder;
 
         if (memberCourses.get(clientId) == mask){
@@ -284,14 +278,9 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
             holder = windowAdapter.getHolders().get(clientId + "");
         }
         if (holder != null && holder.meetingGLSurfaceView != null) {
-            holder.meetingGLSurfaceView.update(width, height, fourcc);
-            holder.meetingGLSurfaceView.update(ost, tnd, trd, fourcc);
+            holder.meetingGLSurfaceView.update(width, height, format);
+            holder.meetingGLSurfaceView.update(ost, tnd, trd, format);
         }
-
-//        if (holder != null && holder.mTextureView != null) {
-//            holder.mTextureView.setYuvDataSize(width, height);
-//            holder.mTextureView.feedData(ost, tnd, trd,fourcc);
-//        }
     }
 
     @Override
@@ -368,7 +357,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
             }
         }
         if (isChange){
-            // TODO: 2019/10/29 用这个会黑屏一下，可以直接拿到控件去控制
+            // TODO: 2019/10/29 用notifyDataSetChanged会黑屏一下，可以直接拿到控件去控制
             windowAdapter.notifyDataSetChanged();
         }
     }
@@ -380,6 +369,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         Log.e(TAG, "onNotifyMyAccount"
                 + "  id:" + account.getId() + "  streamId:" + account.getStreamId()
                 + "  name:" + account.getName() + "  nickname:" + account.getNickname()
+                + "  hasVideo:" + account.hasVideoState() + "   hasAudio:" + account.hasAudioState()
                 + "  videoState:" + account.getVideoState() + "  audioState:" + account.getAudioState() + "  role:" + account.getRole());
         if (account.hasVideoState() && isSendSelfVideo != (account.getVideoState() == Models.DeviceState.DS_Active)){//主持人会控操作后，状态发生改变
             closeSelfVideo(true, account.getVideoState());
@@ -389,7 +379,6 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         }
     }
 
-    //流变化通知，所有人收得到，演示流可以在这里做
     @Override
     public void onNotifyStreamChanged(RoomServer.StreamNotify streamNotify) {
         Log.e(TAG, "onNotifyStreamChanged:  "
@@ -398,7 +387,6 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
                 + "  streamName:" + streamNotify.getStream().getName()
                 + "  channelType:" + streamNotify.getStream().getChannelType()
                 + "  type:" + streamNotify.getStream().getType());
-
 
         streamNotify.getAccountId(); //判断哪个用户
 
@@ -494,7 +482,6 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         rootFrameLayout = findViewById(R.id.root);
         progressBar = findViewById(R.id.progress_bar);
         mTextureView = findViewById(R.id.cameraTextureView);
-        mTextureView.setMirror(1);//0 镜像，不做任何操作 默认是0  1 左右，2上下
 
         sendChatBtn.setOnClickListener(this);
         customMsgTv = findViewById(R.id.custom_msg_tv);
@@ -519,8 +506,6 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
 
         Intent intent = getIntent();
         meetingBean = (MeetingBean) intent.getSerializableExtra(ROOM_INFO);
-//        meetingBean.setStream_host("103.219.32.162");
-//        meetingBean.setStream_port(8006);
         roomSdkNo = Integer.parseInt(meetingBean.getSdk_no());
         trackServer = intent.getStringExtra(DEBUG_ADDR);
         openDebug = intent.getBooleanExtra(DEBUG_SWITCH, false);
@@ -551,8 +536,7 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         windowRcView.setAdapter(windowAdapter);
         windowRcView.getRecycledViewPool().setMaxRecycledViews(0, 0);
 
-        mySdkNo = Integer.parseInt(UserConfig.getUserInfo().getData().getAccount().getRoom().getSdk_no());
-        clientTv.setText(mySdkNo + "");
+        clientTv.setText(UserConfig.getUserInfo().getData().getAccount().getRoom().getSdk_no());
     }
 
     //初始化API
@@ -572,13 +556,9 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
                 UserConfig.getUserInfo().getData().getAccount().getName(),
                 UserConfig.getUserInfo().getData().getAccount().getNickname(),
                 UserConfig.getUserInfo().getData().getAccount().getPortrait());
-        roomClient.setRoom(meetingBean.getRoom().getId(), roomSdkNo + "");
-
-        roomClient.setSessionId(meetingBean.getSession());
-        roomClient.setStreamAddr(meetingBean.getStream_host());
-        roomClient.setStreamPort(meetingBean.getStream_port());
-        roomClient.setMeetingAddr(meetingBean.getMeeting_host());
-        roomClient.setMeetingPort(meetingBean.getMeeting_port());
+        roomClient.setRoom(meetingBean.getRoom().getId(), roomSdkNo, meetingBean.getSession());
+        roomClient.setStreamAddr(meetingBean.getStream_host(), meetingBean.getStream_port());
+        roomClient.setMeetingAddr(meetingBean.getMeeting_host(), meetingBean.getMeeting_port());
 
         //测试用，保存流媒体信息
 //        File file = getExternalFilesDir(null);
@@ -590,43 +570,25 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
 //        String filePath = file.getAbsolutePath();
 //        roomClient.getApi().VCS_setSaveFrameForTest(1, filePath);
 
-        roomClient.setNeedOnFrameYUV(false);//是否需要onFrame回调里YUV数组数据回调，不使用的话建议关闭
         roomClient.useMultiStream(true);//设置开启多流
-//        List<UploadUserBean>encoderList=new ArrayList<>();
-//        UploadUserBean bean=new UploadUserBean();
-//        bean.setAutoxbit(true);
-//        bean.setBit(800*1024);
-//        bean.setHalfBit(400*1024);
-//        bean.setQuarterBit(250*1024);
-//        bean.setFps(20);
-//        bean.setKeyframe(1);
-//        bean.setHeight(360);
-//        bean.setTrack(2);
-//        encoderList.add(bean);
-//        roomClient.setDuplicateUploadConfig(encoderList);
         roomClient.setResolutionSize(1280, 720);
         //输出分辨率宽必须是16的倍数,高必须是2的倍数,否则容易出现绿边等问题
+        //小码流高（会根据setVideoOutput设置的宽高自动计算宽，一定要放在setVideoOutput方法之前设置），码流，帧率
         roomClient.setMinVideoOutput(360, 500, 15);
         roomClient.setVideoOutput(videoW, videoH, FPS, bitRate);//设置视频分辨率宽高，帧率，码率
+        roomClient.setAudioSampleRate(sampleRate);//设置采样率
         roomClient.setAgcAec(agc, aec);//设置AGC,AEC
         roomClient.setFps(FPS);//设置帧率
 
-        roomClient.openCamera(null, this);//设置预览view
-
+        roomClient.openCamera(mTextureView);//设置预览view
         roomClient.enableXDelay(true);//自适应延迟
         roomClient.useHwDecoder(hardDecoder);//是否硬解码
-        roomClient.setAudioSampleRate(sampleRate);//设置采样率
-
-        //小码流使用软件编码 默认硬件。软件编码多路情况下 性能有可能不足
-        roomClient.setMinEncoderSoft(false);
-        roomClient.setFPSPrintDebug(false);
 
         if (isSendSelfAudio) {
             roomClient.setDefaultSendSelfAudio(true);
             closeSelfAudioBtn.setText("关闭自己的音频");
         } else {
             roomClient.setDefaultSendSelfAudio(false);
-//            roomClient.enableSendAudio(false);
             closeSelfAudioBtn.setText("打开自己的音频");
         }
 
@@ -636,19 +598,11 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
             closePreviewTv.setVisibility(View.GONE);
         } else {
             roomClient.setDefaultSendSelfVideo(false);
-//            roomClient.enableSendVideo(false);
             closeSelfVideoBtn.setText("打开自己的视频");
             closePreviewTv.setVisibility(View.VISIBLE);
         }
-        roomClient.setCenterInside(true);
 
         roomClient.open();
-    }
-
-    @Override
-    public void onBackPressed() {
-
-        super.onBackPressed();
     }
 
     @Override
@@ -659,14 +613,14 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         }
     }
 
-        //闪光灯开关
-        private void switchLight() {
-            if (isFront) {
-                showToast("后置摄像头才能开启闪光灯");
-                return;
-            }
+    //闪光灯开关
+    private void switchLight() {
+        if (isFront) {
+            showToast("后置摄像头才能开启闪光灯");
+            return;
+        }
         isLight = !isLight;
-        roomClient.camera_Light(isLight);
+        roomClient.cameraLight(isLight);
         if (isLight) {
             lightBtn.setText("关闪光灯");
         } else {
@@ -680,15 +634,8 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         isFront = !isFront;
         if (isFront) {
             switchBtn.setText("后置");
-            lightBtn.setText("开闪光灯");
-            if (mTextureView != null){
-                mTextureView.setMirror(1);
-            }
         } else {
             switchBtn.setText("前置");
-            if (mTextureView != null) {
-                mTextureView.setMirror(0);
-            }
         }
     }
 
@@ -704,16 +651,12 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
 
     //主持人踢人
     public void kickOut(String id){
-        roomClient.hostKickout(id);
+        roomClient.hostKickOut(id);
     }
 
     //主持人会控
     public void hostCtrlMember(String acc, Models.DeviceState video, Models.DeviceState audio){
         roomClient.hostCtrl(acc, video, audio);
-    }
-
-    public void useChannel(int sdkNo, StreamTrack streamTrack){
-        roomClient.setStreamTrack(sdkNo, streamTrack);
     }
 
     //掩码方式
@@ -833,30 +776,10 @@ public class MeetingActivity extends PermissionActivity implements View.OnClickL
         Toast.makeText(MyApplication.getContext(), null == obj ? "Unknow Error" : obj.toString(), Toast.LENGTH_LONG).show();
     }
 
-    boolean initCameraView = false;
-
     @Override
     protected void onPause() {
         super.onPause();
 //        closeSelfVideo(false);
     }
 
-    @Override
-    public void onPreviewFrame(byte[] yuv, int width, int height, long stamp, int format) {
-        //预览数据回调
-        //camera 数据回调 NV21 这个通用适配所有手机  format 默认ImageFormat.NV21
-
-        if (mTextureView != null){
-            mTextureView.update(width, height, format);
-            mTextureView.update(yuv, format);
-        }
-
-//        if (mTextureView != null){
-//            if (!initCameraView){
-//                mTextureView.update(width, height, format);
-//                initCameraView = true;
-//            }
-//            mTextureView.update(yuv, format);
-//        }
-    }
 }
