@@ -10,44 +10,6 @@
     tools:context=".activity.MainActivity">
 
     <LinearLayout
-        android:visibility="gone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:text="地址："
-            style="@style/LabelStyle"  />
-
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/ip_et"
-            android:hint="输入地址"
-            android:text="120.26.56.75"
-            android:inputType="text"
-            style="@style/InputStyle" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:visibility="gone"
-        android:layout_marginTop="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:text="端口号："
-            style="@style/LabelStyle"  />
-
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/port_et"
-            android:hint="输入端口号"
-            android:text="8006"
-            style="@style/InputStyle"  />
-
-    </LinearLayout>
-
-    <LinearLayout
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -59,7 +21,7 @@
 
         <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/room_no_et"
-            android:text="71975560"
+            android:text="915105013005"
             android:hint="输入房间号"
             android:inputType="text"
             style="@style/InputStyle" />

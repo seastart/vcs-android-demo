@@ -2,6 +2,7 @@ package com.freewind.meetingdemo.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,6 +14,8 @@ import com.freewind.meetingdemo.bean.UserInfoBean;
 import com.freewind.meetingdemo.common.UserConfig;
 import com.freewind.meetingdemo.http.HttpCallBack;
 import com.freewind.meetingdemo.util.Requester;
+import com.freewind.vcs.Models;
+import com.freewind.vcs.VcsServer;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -61,8 +64,7 @@ public class LoginActivity extends AppCompatActivity {
 //                                    }
 //                                });
 
-                        startActivity(new Intent(LoginActivity.this, MainActivity.class)
-                                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK));
+                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
                     }
 
                     @Override

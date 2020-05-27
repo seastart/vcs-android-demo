@@ -47,6 +47,11 @@ public class Requester {
     public static void login(String mobile, String password, final HttpCallBack<UserInfoBean> callBack) {
         String url = Constants.API_HOST + "account/login";
         RequestParams params = new RequestParams();
+
+//        params.put("loginname", "3eccdf4f7d00211594df54216386c150");
+//        params.put("password", "3bc2ee0ecaf5dee6df73447892146e61");
+
+
         params.put("loginname", mobile);
         params.put("password", PwdUtil.hmacSha1(mobile + password));
         params.put("dev_type", 2);

@@ -16,6 +16,7 @@ public class PermissionActivity extends AppCompatActivity {
     static String[] PERMISSIONS = new String[]{
             Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
     private static final int PERMISSION_REQUEST_CODE = 10086;
 

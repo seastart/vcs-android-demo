@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.freewind.meetingdemo">
 
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <application
         android:name=".MyApplication"
         android:allowBackup="true"
@@ -11,11 +13,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.SetActivity"></activity>
+
+        <activity android:name=".activity.SetActivity"/>
 
         <activity
             android:name=".activity.RegisterActivity"
-            android:screenOrientation="portrait"
             android:theme="@style/TransAct" />
 
         <activity android:name=".activity.WelcomeActivity">
@@ -32,10 +34,14 @@
             android:name=".activity.MeetingActivity"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="landscape"
+            android:launchMode="singleTask"
             tools:ignore="LockedOrientationActivity" />
         <meta-data
             android:name="android.max_aspect"
             android:value="2.2" />
+
+        <service android:name=".util.FloatingButtonService"/>
+
     </application>
 
 </manifest>

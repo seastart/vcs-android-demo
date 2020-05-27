@@ -1,11 +1,21 @@
 package com.freewind.meetingdemo.util;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Binder;
+import android.os.Build;
+import android.provider.Settings;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.PermissionChecker;
+
+import com.freewind.vcs.util.ActivityLauncher;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * author superK
@@ -80,6 +90,22 @@ public class PermissionUtil {
             }
         }
         return true;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public boolean isGrandFloating(Context context){
+        return Settings.canDrawOverlays(context);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public void setPermissionFloat(Activity activity, PermissionCallBack callBack){
+        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + activity.getPackageName()));
+        ActivityLauncher.init(activity)
+                .startActivityForResult(intent, (resultCode, data) -> callBack.onResult(resultCode == RESULT_OK));
+    }
+
+    public interface PermissionCallBack{
+        void onResult(boolean success);
     }
 
 }

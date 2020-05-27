@@ -41,13 +41,22 @@
         android:layout_height="match_parent">
 
         <Button
+            android:id="@+id/rec_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="启动录屏"
+            app:layout_constraintBottom_toBottomOf="@+id/camera_switch_btn"
+            app:layout_constraintEnd_toStartOf="@+id/send_msg_btn"
+            android:layout_marginEnd="10dp"/>
+
+        <Button
             android:id="@+id/send_msg_btn"
             app:layout_constraintBottom_toBottomOf="@+id/camera_switch_btn"
             app:layout_constraintEnd_toStartOf="@+id/camera_switch_btn"
             android:layout_marginEnd="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="发送聊天消息你好"/>
+            android:text="发聊天消息你好"/>
 
         <Button
             android:id="@+id/camera_switch_btn"
@@ -121,19 +130,6 @@
             app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <TextView
-        android:id="@+id/custom_msg_tv"
-        android:visibility="gone"
-        android:gravity="bottom"
-        android:textColor="#FFFC8B"
-        android:scrollbars="vertical"
-        android:layout_marginBottom="70dp"
-        android:layout_marginStart="30dp"
-        android:layout_gravity="bottom"
-        android:layout_width="220dp"
-        android:layout_height="150dp"
-        android:lineSpacingExtra="10dp"/>
 
     <TextView
         android:id="@+id/upload_tv"
