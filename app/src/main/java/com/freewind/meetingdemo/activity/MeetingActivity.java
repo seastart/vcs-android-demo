@@ -7,13 +7,16 @@ import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.SparseIntArray;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.freewind.meetingdemo.R;
@@ -24,6 +27,7 @@ import com.freewind.meetingdemo.bean.RoomInfoBean;
 import com.freewind.meetingdemo.common.Constants;
 import com.freewind.meetingdemo.common.UserConfig;
 import com.freewind.meetingdemo.http.HttpCallBack;
+import com.freewind.meetingdemo.util.DisplayUtil;
 import com.freewind.meetingdemo.util.FloatingButtonService;
 import com.freewind.meetingdemo.util.PermissionUtil;
 import com.freewind.meetingdemo.util.Requester;
@@ -34,6 +38,8 @@ import com.freewind.vcs.RoomEvent;
 import com.freewind.vcs.RoomServer;
 import com.ook.android.VCS_EVENT_TYPE;
 import com.ook.android.ikPlayer.VcsPlayerGlTextureView;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -77,6 +83,10 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
     TextView clientTv;
     @BindView(R.id.progress_bar)
     ProgressBar progressBar;
+    @BindView(R.id.webView)
+    WebView webView;
+    @BindView(R.id.boardCl)
+    ConstraintLayout boardCl;
 
     private int videoH = 480;
     private int videoW = 848;
@@ -122,6 +132,8 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
 
     private WindowAdapter windowAdapter;
 
+    private int spanCount = 2;
+
     @Override
     public void onEnter(int result) {
         //如果result != 0 则表示服务器上的token已经失效，需要进行重新进入房间的逻辑
@@ -157,13 +169,28 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         Log.e(TAG, "你离开了会议室 result:" + result);
     }
 
+    public String shareAccId = "";
+
     @Override
     public void onNotifyRoom(Models.Room room) {
         Log.e(TAG, "onNotifyRoom"
                 + "  id:" + room.getId() + "  sdkNo:" + room.getSdkNo()
-
+                + "  sharingAccId:" + room.getSharingAccId()
+                + "  sharingType:" + room.getSharingType()
                 + "  whiteBoard:" + room.getWhiteBoard() + "  state:" + room.getState()
                 + "  type:" + room.getType());
+
+        shareAccId = room.getSharingAccId();
+
+        if (room.getSharingType() == Models.SharingType.ST_WhiteBoard) {
+            if (boardCl.getVisibility() != View.VISIBLE) {
+                loadWebView();
+            }
+        } else {
+            if (boardCl.getVisibility() != View.GONE) {
+                hideWebView();
+            }
+        }
     }
 
     @Override
@@ -171,8 +198,6 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         Log.e(TAG, "onNotifyKickout   你被踢出了会议室");
         onBackPressed();
     }
-
-    private SparseIntArray memberCourses = new SparseIntArray();//课件流用户
 
     /**
      * Account类部分字段
@@ -214,27 +239,9 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
             roomClient.enableRecvAudio(sdkNo, false);
         }
 
-        MemberBean memberBean2 = null;
-        for (Models.Stream stream : account.getStreamsList()) {
-            if (stream.getChannelType() == Models.ChannelType.CT_Courseware) {
-                memberBean2 = new MemberBean();
-                memberBean2.setSdkNo(sdkNo + "" + stream.getId());
-                memberBean2.setAccountId(account.getId());
-                memberBean2.setCloseVideo(account.getVideoState());
-                memberBean2.setMute(account.getAudioState());
-
-                memberCourses.put(sdkNo, stream.getId());
-
-                roomClient.setStreamTrack(sdkNo, stream.getId() | 1);
-                break;
-            }
-        }
 
         if (windowAdapter.getMemberList().isEmpty()) {
             windowAdapter.addItem(memberBean);
-            if (memberBean2 != null) {
-                windowAdapter.addItem(memberBean2);
-            }
         } else {
             int count = 0;
             for (MemberBean s : windowAdapter.getMemberList()) {
@@ -245,9 +252,6 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
             }
             if (count == 0) {
                 windowAdapter.addItem(memberBean);
-                if (memberBean2 != null) {
-                    windowAdapter.addItem(memberBean2);
-                }
             }
         }
     }
@@ -261,10 +265,6 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
             for (MemberBean s : windowAdapter.getMemberList()) {
                 if (s.getSdkNo().equals(sdkNo + "")) {
                     windowAdapter.removeItem(sdkNo + "");
-                    int id = memberCourses.get(sdkNo, -1);
-                    if (id != -1) {
-                        windowAdapter.removeItem(sdkNo + "" + id);
-                    }
                     break;
                 }
             }
@@ -285,14 +285,11 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
 
     @Override
     public void onFrame(byte[] ost, byte[] tnd, byte[] trd, int width, int height, int format, int clientId, int mask) {
-//        Log.e("3333333333", "onFrame  " + "  clientId: " + clientId + "   " + width + " " + height + "   mask:" + mask);
+        Log.e("3333333333", "onFrame  " + "  clientId: " + clientId + "   " + width + " " + height + "   mask:" + mask);
         final WindowAdapter.MyViewHolder holder;
 
-        if (memberCourses.get(clientId) == mask) {
-            holder = windowAdapter.getHolders().get(clientId + "" + mask);
-        } else {
-            holder = windowAdapter.getHolders().get(clientId + "");
-        }
+        holder = windowAdapter.getHolders().get(clientId + "");
+
         if (holder != null && holder.meetingGLSurfaceView != null) {
             holder.meetingGLSurfaceView.update(width, height, format);
             holder.meetingGLSurfaceView.update(ost, tnd, trd, format);
@@ -376,6 +373,59 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
             // TODO: 2019/10/29 用notifyDataSetChanged会黑屏一下，可以直接拿到控件去控制
             windowAdapter.notifyDataSetChanged();
         }
+    }
+
+    //取流示例
+    public void pickStream(Models.Account account) {
+        int coursewareMain = 0;//课件大流mask
+        int coursewareSub = 0;//课件小流
+
+        int defaultMain = 0;//默认显示通道的大流
+        int defaultSub = 0;//默认显示通道的小流
+
+        int defaultChannel = -1;//默认显示的通道号
+        int defaultChannelType = -1;//默认通道类型
+
+        List<Models.Stream> streams = account.getStreamsList();
+        //录播主机和硬终端
+        if (account.getTerminalType() == Models.TerminalType.Terminal_Embedded) {
+            for (Models.Stream stream : streams) {
+                if (stream.getChannelType() != Models.ChannelType.CT_Courseware) {
+                    defaultChannel = stream.getChannel();//以不是课件流的第一个通道为默认通道，基本是id=1的通道
+                    defaultChannelType = stream.getChannelType().getNumber();
+                    break;
+                }
+            }
+
+            //如果这里defaultChannel == 0，表示除了课件外没其他通道了
+
+            for (Models.Stream stream : streams) {
+                if (stream.getChannelType() == Models.ChannelType.CT_Courseware) {//如果是课件
+                    if (stream.getType() == Models.StreamType.Stream_Main) {
+                        coursewareMain = stream.getId();
+                    }
+                    if (stream.getType() == Models.StreamType.Stream_Sub) {
+                        coursewareSub = stream.getId();
+                    }
+                }
+                //默认通道的通道类型
+                if (stream.getChannel() == defaultChannel && stream.getChannelType().getNumber() == defaultChannelType) {
+                    if (stream.getType() == Models.StreamType.Stream_Main) {
+                        defaultMain = stream.getId();
+                    }
+                    if (stream.getType() == Models.StreamType.Stream_Sub) {
+                        defaultSub = stream.getId();
+                    }
+                }
+            }
+        }
+
+        //显示课件和默认通道画面,且网络ok
+        if (coursewareMain != 0 && defaultMain != 0) {
+            roomClient.setStreamTrack(account.getStreamId(), coursewareMain | defaultMain);
+        }
+        // TODO: 2020/6/1 其他判断是否有大小流，网络等
+
     }
 
     @Override
@@ -487,6 +537,10 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         initView();
         initVcsApi();
         initRecording();
+        initWebView();
+
+        cameraTextureView.setCameraId(isFront ? 1 : 0);//1：前置  0：后置
+        cameraTextureView.setLANDSCAPE(island);//true:横屏 false:竖屏
     }
 
     private void initView() {
@@ -509,7 +563,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
 
         if (level == 0) {
             videoH = 480;
-            videoW = 640;
+            videoW = 848;
             bitRate = 512;
         } else {
             videoH = 720;
@@ -524,6 +578,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         windowAdapter = new WindowAdapter(MeetingActivity.this);
         windowRcView.setAdapter(windowAdapter);
         windowRcView.getRecycledViewPool().setMaxRecycledViews(0, 0);
+        windowRcView.setLayoutManager(new GridLayoutManager(this, spanCount));
 
         clientTv.setText(UserConfig.getUserInfo().getData().getAccount().getRoom().getSdk_no());
     }
@@ -538,6 +593,8 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         }
 
         roomClient.setRoomEvent(this);//设置会议回调
+
+        shareAccId = UserConfig.getUserInfo().getData().getAccount().getId();
 
         roomClient.setAccount(
                 UserConfig.getUserInfo().getData().getAccount().getId(),
@@ -555,14 +612,14 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
 //        roomClient.setDebugLog(filePath);
 
         //测试用，保存流信息
-//        File file = getExternalFilesDir(null);
-//        String filePath = file.getAbsolutePath();
-//        roomClient.getApi().VCS_setSaveFrameForTest(1, filePath);
+//        File file1 = getExternalFilesDir(null);
+//        String filePath1 = file1.getAbsolutePath();
+//        roomClient.getApi().VCS_setSaveFrameForTest(1, filePath1);
 
         roomClient.useMultiStream(true);//设置开启多流
         roomClient.setMinEncoderSoft(false);//在setVideoOutput前设置
 
-        roomClient.setResolutionSize(1280, 720);
+//        roomClient.setResolutionSize(1280, 720);
         //输出分辨率宽必须是16的倍数,高必须是2的倍数,否则容易出现绿边等问题
         //小码流高（会根据setVideoOutput设置的宽高自动计算宽，一定要放在setVideoOutput方法之前设置），码流，帧率
         roomClient.setMinVideoOutput(360, 500, 15);
@@ -571,9 +628,12 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         roomClient.setAgcAec(agc, aec);//设置AGC,AEC
         roomClient.setFps(FPS);//设置帧率
 
+
         roomClient.openCamera(cameraTextureView);//设置预览view
         roomClient.enableXDelay(true);//自适应延迟
         roomClient.useHwDecoder(hardDecoder);//是否硬解码
+
+        roomClient.setCenterInside(true);
 
         if (isSendSelfAudio) {
             roomClient.setDefaultSendSelfAudio(true);
@@ -592,6 +652,33 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
             closeSelfVideoBtn.setText("打开自己的视频");
             closePreviewTv.setVisibility(View.VISIBLE);
         }
+
+        roomClient.setOrientationChange((streamId, x, y) -> {
+            for (MemberBean memberBean : windowAdapter.getMemberList()){
+                WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(streamId + "");
+
+                if (memberBean.getSdkNo().equals(streamId+"")){
+                    memberBean.setX(x);
+                    memberBean.setY(y);
+
+                    if (holder != null) {
+                        if (memberBean.getX() == 1 && !island){
+                            holder.meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.CENTERCROP);
+                        }else {
+                            if (memberBean.getY() == 1 && island){
+                                holder.meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.CENTERCROP);
+                            }else {
+                                holder.meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.CENTERINSIDE);
+                            }
+                        }
+                    }
+                }else {
+                    if (holder != null){
+                        holder.meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.CENTERINSIDE);
+                    }
+                }
+            }
+        });
 
         roomClient.open();
     }
@@ -628,6 +715,8 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         } else {
             cameraSwitchBtn.setText("前置");
         }
+
+        cameraTextureView.setCameraId(isFront ? 1 : 0);//1：前置  0：后置
     }
 
     //设置是否接收某人的视频
@@ -707,18 +796,81 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         }
     }
 
+    public void changeSize(){
+        int width, height;
+
+        if (island){
+            height = (DisplayUtil.getInstance().getMobileWidth(this)/spanCount) * 9 / 16;
+        }else {
+            height = (DisplayUtil.getInstance().getMobileWidth(this)/spanCount) * 16 / 9;
+        }
+        width = DisplayUtil.getInstance().getMobileWidth(this)/spanCount;
+
+        for (WindowAdapter.MyViewHolder holder : windowAdapter.getHolders().values()){
+            holder.frameLayout.setLayoutParams(new ConstraintLayout.LayoutParams(width, height));
+        }
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
 //        closeSelfVideo(false);
     }
 
+    @Override
+    public void onConfigurationChanged(@NotNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        changeSize();
+    }
+
     Intent floatIntent;
+    private boolean island = true;
 
     @SuppressLint("SourceLockedOrientationActivity")
-    @OnClick({R.id.rec_btn, R.id.send_msg_btn, R.id.camera_switch_btn, R.id.camera_light_btn, R.id.close_self_video_btn, R.id.close_self_audio_btn, R.id.not_recv_audio_btn, R.id.not_recv_video_btn, R.id.change_orientation_btn})
+    @OnClick({R.id.rec_btn, R.id.send_msg_btn, R.id.camera_switch_btn,
+            R.id.camera_light_btn, R.id.close_self_video_btn, R.id.close_self_audio_btn,
+            R.id.not_recv_audio_btn, R.id.not_recv_video_btn, R.id.change_orientation_btn,
+            R.id.closeBoardBtn, R.id.bgBtn, R.id.toggleToolBtn, R.id.openBoardBtn})
     public void onClick(View view) {
         switch (view.getId()) {
+            case R.id.openBoardBtn:
+                roomClient.startToShare(Models.SharingType.ST_WhiteBoard, "");
+                break;
+            case R.id.closeBoardBtn:
+                if (!shareAccId.equals(roomClient.getAccount().getId())) {
+                    //不是当前白板发起人，无法关闭
+                    ToastUtil.getInstance().showLongToast("您没有权限完成此操作");
+                    return;
+                }
+
+                roomClient.stopToShare();
+                break;
+            case R.id.bgBtn:
+                webView.evaluateJavascript("javascript:setBgImage('http://crazy.image.alimmdn.com/iSaior/14878273006128.png')", value -> {
+                    //此处为 js 返回的结果
+//                        setBgImage(params);
+//                        res = {
+//                            ret:{
+//                                code:
+//                                0,
+//                                cn:"成功",
+//                            },
+//                        };
+                });
+                break;
+            case R.id.toggleToolBtn:
+                webView.evaluateJavascript("javascript:toggleBtns()", value -> {
+                    //此处为 js 返回的结果
+//                        toggleBtns(params);
+//                        res = {
+//                            ret:{
+//                                code:
+//                                0,
+//                                cn:"成功",
+//                            },
+//                        };
+                });
+                break;
             case R.id.rec_btn:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (PermissionUtil.getInstance().isGrandFloating(this)) {
@@ -745,8 +897,26 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
             case R.id.change_orientation_btn:
                 if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {//当前是横屏
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);//竖屏
+                    island = false;
                 } else {//当前是竖屏
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//横屏
+                    island = true;
+                }
+                cameraTextureView.setLANDSCAPE(island);
+
+                for (MemberBean memberBean : windowAdapter.getMemberList()){
+                    WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(memberBean.getSdkNo());
+                    if (holder != null){
+                        if (memberBean.getX() == 1 && !island){
+                            holder.meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.CENTERCROP);
+                        }else {
+                            if (memberBean.getY() == 1 && island){
+                                holder.meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.CENTERCROP);
+                            }else {
+                                holder.meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.CENTERINSIDE);
+                            }
+                        }
+                    }
                 }
                 break;
             case R.id.close_self_video_btn://设置自己的视频，是否发送
@@ -822,7 +992,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
                     moveTaskToBack(true);
                     break;
                 case VCS_EVENT_TYPE.ScreenRecordStop:
-                    if (recordingBtn.getText().equals("关闭录屏")){
+                    if (recordingBtn.getText().equals("关闭录屏")) {
                         stopService(floatIntent);
 
                         recordingBtn.setText("启动录屏");
@@ -831,6 +1001,27 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
                     break;
             }
         });
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private void initWebView() {
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setLoadWithOverviewMode(true);// 缩放至屏幕的大小
+        webSettings.setUseWideViewPort(true);//将图片调整到适合webview的大小
+        webSettings.setSupportZoom(false);//支持缩放，默认为true。
+        webSettings.setBuiltInZoomControls(false);//设置内置的缩放控件。若为false，则该WebView不可缩放
+    }
+
+    private void loadWebView() {
+        webView.loadUrl("http://43.254.220.134:8022/e-whiteboard/#/?meetingId=" + roomSdkNo);
+        boardCl.setVisibility(View.VISIBLE);
+    }
+
+    private void hideWebView() {
+        webView.loadUrl("about:blank");
+        webView.clearCache(true);
+        boardCl.setVisibility(View.GONE);
     }
 
 }

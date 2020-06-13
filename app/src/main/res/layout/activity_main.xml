@@ -21,7 +21,7 @@
 
         <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/room_no_et"
-            android:text="915105013005"
+            android:text="915105013004"
             android:hint="输入房间号"
             android:inputType="text"
             style="@style/InputStyle" />

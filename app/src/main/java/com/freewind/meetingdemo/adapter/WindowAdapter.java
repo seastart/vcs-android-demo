@@ -78,7 +78,6 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         }
     }
 
-
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -102,9 +101,9 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         }
 
         if (memberBean.isCloseOtherAudio()){
-            holder.muteBtn.setText("关闭静音");
+            holder.muteBtn.setText("关静音");
         }else {
-            holder.muteBtn.setText("打开静音");
+            holder.muteBtn.setText("开静音");
         }
 
         if (memberBean.isCloseVideo()){
@@ -184,6 +183,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         holder.btn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+//                holder.meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.CENTERCROP);
                 ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getSdkNo()), 1);//track0
             }
         });
@@ -191,6 +191,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         holder.btn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+//                holder.meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.CENTERINSIDE);
                 ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getSdkNo()), 2);//track1
             }
         });
@@ -223,7 +224,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         ImageView selfMuteIv, otherMuteIv;
         TextView selfCloseTv, otherCloseTv;
         Button closeVideoBtn, muteBtn, kickBtn, hostCloseVideoBtn, hostCloseAudioBtn, btn1, btn2, btn3, btn4;
-        FrameLayout frameLayout;
+        public FrameLayout frameLayout;
 //        TextureView cameraTextureView;
 
 //        public YUVPlayerTextureView mTextureView;
@@ -234,13 +235,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
             meetingGLSurfaceView = convertView.findViewById(R.id.gl_view);
             meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.FITXY);
 
-            ConstraintLayout.LayoutParams fullSmallLayoutParams = new ConstraintLayout.LayoutParams(
-                    (DisplayUtil.getInstance().getMobileHeight(context) - DisplayUtil.getInstance().getMobileWidth(context) / 4 * 9 / 16) * 16 / 9,
-                    DisplayUtil.getInstance().getMobileHeight(context) - DisplayUtil.getInstance().getMobileWidth(context) / 4 * 9 / 16
-            );
             frameLayout = convertView.findViewById(R.id.fl_view);
-
-//            frameLayout.setLayoutParams(fullSmallLayoutParams);
 
             nameTv = convertView.findViewById(R.id.id_tv);
             selfMuteIv = convertView.findViewById(R.id.self_mute_iv);

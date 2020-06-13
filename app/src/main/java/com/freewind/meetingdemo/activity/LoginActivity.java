@@ -49,20 +49,20 @@ public class LoginActivity extends AppCompatActivity {
                         UserConfig.updateUserInfo(data);
                         UserConfig.setRequestToken(data.getData().getToken());
 
-//                        VcsServer.getInstance().start(data.getData().getAccount().getId(),
-//                                data.getData().getToken(),
-//                                data.getData().getReg().getPort(),
-//                                data.getData().getReg().getAddr(), new VcsServer.VcsMsgListener() {
-//                                    @Override
-//                                    public void InviteNotification(String accountId, String accountName, String targetId, String roomNo, String roomName, String roomPwd) {
-//                                        Log.e("222222222", accountName);
-//                                    }
-//
-//                                    @Override
-//                                    public void InviteConfirmNotification(String roomNo, String accId, Models.InviteResponse response) {
-//                                        Log.e("222222222", response.name());
-//                                    }
-//                                });
+                        VcsServer.getInstance().start(data.getData().getAccount().getId(),
+                                data.getData().getToken(),
+                                data.getData().getReg().getPort(),
+                                data.getData().getReg().getAddr(), new VcsServer.VcsMsgListener() {
+                                    @Override
+                                    public void InviteNotification(String accountId, String accountName, String targetId, String roomNo, String roomName, String roomPwd) {
+                                        Log.e("222222222", accountName);
+                                    }
+
+                                    @Override
+                                    public void InviteConfirmNotification(String roomNo, String accId, Models.InviteResponse response) {
+                                        Log.e("222222222", response.name());
+                                    }
+                                });
 
                         startActivity(new Intent(LoginActivity.this, MainActivity.class));
                     }

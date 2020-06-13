@@ -137,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
         return "0.0.0.0";
-
     }
 
     @OnClick(R.id.start_btn)
@@ -156,7 +155,6 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     level = 0;
                 }
-
 
                 startActivity(new Intent(MainActivity.this, MeetingActivity.class)
                         .putExtra(MeetingActivity.DEBUG_ADDR, Objects.requireNonNull(debugAddrEt.getText()).toString())

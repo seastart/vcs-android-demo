@@ -32,9 +32,7 @@
         android:id="@+id/window_rcview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:overScrollMode="never"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="2" />
+        android:overScrollMode="never"/>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -44,90 +42,99 @@
             android:id="@+id/rec_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
             android:text="启动录屏"
             app:layout_constraintBottom_toBottomOf="@+id/camera_switch_btn"
-            app:layout_constraintEnd_toStartOf="@+id/send_msg_btn"
-            android:layout_marginEnd="10dp"/>
+            app:layout_constraintEnd_toStartOf="@+id/send_msg_btn" />
 
         <Button
             android:id="@+id/send_msg_btn"
-            app:layout_constraintBottom_toBottomOf="@+id/camera_switch_btn"
-            app:layout_constraintEnd_toStartOf="@+id/camera_switch_btn"
-            android:layout_marginEnd="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="发聊天消息你好"/>
+            android:layout_marginEnd="10dp"
+            android:text="发聊天消息你好"
+            app:layout_constraintBottom_toBottomOf="@+id/camera_switch_btn"
+            app:layout_constraintEnd_toStartOf="@+id/camera_switch_btn" />
 
         <Button
             android:id="@+id/camera_switch_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="后置"
-            android:focusable="true"
-            android:layout_marginBottom="10dp"
             android:layout_marginEnd="15dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            android:layout_marginBottom="10dp"
+            android:focusable="true"
+            android:text="后置"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <Button
             android:id="@+id/camera_light_btn"
-            android:focusable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="开闪光灯"
             android:layout_marginBottom="5dp"
+            android:focusable="true"
+            android:text="开闪光灯"
             app:layout_constraintBottom_toTopOf="@+id/camera_switch_btn"
             app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
 
         <Button
             android:id="@+id/close_self_video_btn"
-            android:focusable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="关闭自己的视频"
             android:layout_marginBottom="5dp"
+            android:focusable="true"
+            android:text="关闭自己的视频"
             app:layout_constraintBottom_toTopOf="@+id/camera_light_btn"
             app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
 
         <Button
             android:id="@+id/close_self_audio_btn"
-            android:focusable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="关闭自己的音频"
             android:layout_marginBottom="5dp"
+            android:focusable="true"
+            android:text="关闭自己的音频"
             app:layout_constraintBottom_toTopOf="@+id/close_self_video_btn"
             app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
 
         <Button
             android:id="@+id/not_recv_audio_btn"
-            android:focusable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="不接收所有人音频"
             android:layout_marginBottom="5dp"
+            android:focusable="true"
+            android:text="不接收所有人音频"
             app:layout_constraintBottom_toTopOf="@+id/close_self_audio_btn"
             app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
 
         <Button
             android:id="@+id/not_recv_video_btn"
-            android:focusable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="不接收所有人视频"
             android:layout_marginBottom="5dp"
+            android:focusable="true"
+            android:text="不接收所有人视频"
             app:layout_constraintBottom_toTopOf="@+id/not_recv_audio_btn"
             app:layout_constraintEnd_toEndOf="@+id/camera_switch_btn" />
 
         <Button
             android:id="@+id/change_orientation_btn"
-            android:focusable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="横竖屏变换"
             android:layout_margin="10dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            android:focusable="true"
+            android:text="横竖屏变换"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/openBoardBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="开启白板"
+            app:layout_constraintBottom_toTopOf="@+id/change_orientation_btn"
+            app:layout_constraintStart_toStartOf="@+id/change_orientation_btn" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -158,6 +165,10 @@
         android:layout_gravity="bottom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+
+    <include
+        android:visibility="gone"
+        layout="@layout/layout_board"/>
 
     <ProgressBar
         android:id="@+id/progress_bar"

@@ -32,6 +32,7 @@ public class FloatingButtonService extends Service {
         isStarted = true;
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
 
+
         layoutParams = new WindowManager.LayoutParams();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
