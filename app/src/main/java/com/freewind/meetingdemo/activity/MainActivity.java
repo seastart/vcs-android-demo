@@ -47,10 +47,14 @@ public class MainActivity extends AppCompatActivity {
     AppCompatEditText agcEt;
     @BindView(R.id.aec_et)
     AppCompatEditText aecEt;
+    @BindView(R.id.fps_et)
+    AppCompatEditText fpsEt;
     @BindView(R.id.sample_rate_et)
     AppCompatEditText sampleRateEt;
     @BindView(R.id.debug_addr_et)
     AppCompatEditText debugAddrEt;
+    @BindView(R.id.multi_box)
+    CheckBox multiBox;
     @BindView(R.id.debug_check_box)
     CheckBox debugCheckBox;
     @BindView(R.id.hard_decoder_box)
@@ -159,8 +163,10 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, MeetingActivity.class)
                         .putExtra(MeetingActivity.DEBUG_ADDR, Objects.requireNonNull(debugAddrEt.getText()).toString())
                         .putExtra(MeetingActivity.DEBUG_SWITCH, debugCheckBox.isChecked())
+                        .putExtra(MeetingActivity.MULTI, multiBox.isChecked())
                         .putExtra(MeetingActivity.AGC, Objects.requireNonNull(agcEt.getText()).toString())
                         .putExtra(MeetingActivity.AEC, Objects.requireNonNull(aecEt.getText()).toString())
+                        .putExtra(MeetingActivity.FPS, Objects.requireNonNull(fpsEt.getText()).toString())
                         .putExtra(MeetingActivity.SAMPLE_RATE, Integer.valueOf(Objects.requireNonNull(sampleRateEt.getText()).toString()))
                         .putExtra(MeetingActivity.CLOSE_OTHER_VIDEO, closeOtherVideoBox.isChecked())
                         .putExtra(MeetingActivity.CLOSE_OTHER_AUDIO, closeOtherAudioBox.isChecked())

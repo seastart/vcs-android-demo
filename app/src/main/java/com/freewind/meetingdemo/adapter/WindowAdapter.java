@@ -88,9 +88,9 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
     @Override
     public void onBindViewHolder(@NonNull final WindowAdapter.MyViewHolder holder, final int position) {
         final MemberBean memberBean = memberList.get(position);
-//        holder.meetingGLSurfaceView.setScaleType(CENTERINSIDE);
-        //        holder.img.setScaleType(CENTERCROP);
         holder.nameTv.setText(memberBean.getSdkNo());
+
+        ((MeetingActivity)context).setVcsPlayerScale(holder.meetingGLSurfaceView, memberBean);
 
         if (memberBean.isCloseOtherVideo()){
 //            holder.otherCloseTv.setVisibility(View.VISIBLE);
@@ -225,15 +225,12 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         TextView selfCloseTv, otherCloseTv;
         Button closeVideoBtn, muteBtn, kickBtn, hostCloseVideoBtn, hostCloseAudioBtn, btn1, btn2, btn3, btn4;
         public FrameLayout frameLayout;
-//        TextureView cameraTextureView;
-
-//        public YUVPlayerTextureView mTextureView;
 
         MyViewHolder(View convertView) {
             super(convertView);
 //            setIsRecyclable(false);
+
             meetingGLSurfaceView = convertView.findViewById(R.id.gl_view);
-            meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.FITXY);
 
             frameLayout = convertView.findViewById(R.id.fl_view);
 
@@ -251,6 +248,17 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
             btn2 = convertView.findViewById(R.id.btn2);
             btn3 = convertView.findViewById(R.id.btn3);
             btn4 = convertView.findViewById(R.id.btn4);
+
+            int width=0, height=0;
+
+            if (((MeetingActivity)context).isLand){
+                height = (DisplayUtil.getInstance().getMobileWidth(context)/((MeetingActivity)context).spanCount) * 9 / 16;
+            }else {
+                height = (DisplayUtil.getInstance().getMobileWidth(context)/((MeetingActivity)context).spanCount) * 16 / 9;
+            }
+            width = DisplayUtil.getInstance().getMobileWidth(context)/((MeetingActivity)context).spanCount;
+
+            frameLayout.setLayoutParams(new ConstraintLayout.LayoutParams(width, height));
         }
     }
 }

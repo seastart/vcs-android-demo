@@ -1,252 +1,290 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingStart="15dp"
-    android:paddingEnd="15dp"
-    android:gravity="center"
     tools:context=".activity.MainActivity">
 
     <LinearLayout
-        android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:paddingStart="15dp"
+        android:paddingEnd="15dp"
+        android:orientation="vertical">
 
-        <TextView
-            android:text="房间号："
-            style="@style/LabelStyle" />
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/room_no_et"
-            android:text="915105013004"
-            android:hint="输入房间号"
-            android:inputType="text"
-            style="@style/InputStyle" />
+            <TextView
+                android:text="房间号："
+                style="@style/LabelStyle" />
 
-    </LinearLayout>
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/room_no_et"
+                android:text="915105013005"
+                android:hint="输入房间号"
+                android:inputType="text"
+                style="@style/InputStyle" />
 
-    <LinearLayout
-        android:layout_marginTop="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        </LinearLayout>
 
-        <TextView
-            android:text="AGC："
-            style="@style/LabelStyle"  />
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/agc_et"
-            android:hint="输入AGC"
-            android:text="10000"
-            style="@style/InputStyle"  />
+            <TextView
+                android:text="AGC："
+                style="@style/LabelStyle"  />
 
-    </LinearLayout>
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/agc_et"
+                android:hint="输入AGC"
+                android:text="10000"
+                style="@style/InputStyle"  />
 
-    <LinearLayout
-        android:layout_marginTop="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        </LinearLayout>
 
-        <TextView
-            android:text="AEC："
-            style="@style/LabelStyle"  />
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/aec_et"
-            android:hint="输入AEC"
-            android:text="12"
-            style="@style/InputStyle"  />
+            <TextView
+                android:text="AEC："
+                style="@style/LabelStyle"  />
 
-    </LinearLayout>
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/aec_et"
+                android:hint="输入AEC"
+                android:text="12"
+                style="@style/InputStyle"  />
 
-    <LinearLayout
-        android:layout_marginTop="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        </LinearLayout>
 
-        <TextView
-            android:text="音频采样率："
-            style="@style/LabelStyle"  />
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/sample_rate_et"
-            android:hint="输入音频采样率"
-            android:text="48000"
-            style="@style/InputStyle"  />
+            <TextView
+                android:text="FPS："
+                style="@style/LabelStyle"  />
 
-    </LinearLayout>
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/fps_et"
+                android:hint="输入FPS"
+                android:text="20"
+                style="@style/InputStyle"  />
 
-    <LinearLayout
-        android:layout_marginTop="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        </LinearLayout>
 
-        <TextView
-            android:text="调试地址："
-            style="@style/LabelStyle" />
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/debug_addr_et"
-            android:hint="输入远程调试地址"
-            android:text=""
-            android:inputType="text"
-            style="@style/InputStyle" />
+            <TextView
+                android:text="音频采样率："
+                style="@style/LabelStyle"  />
 
-    </LinearLayout>
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/sample_rate_et"
+                android:hint="输入音频采样率"
+                android:text="48000"
+                style="@style/InputStyle"  />
 
-    <LinearLayout
-        android:layout_marginTop="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        </LinearLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:text="开启调试开关："
-            style="@style/LabelStyle" />
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-        <CheckBox
-            android:id="@+id/debug_check_box"
+            <TextView
+                android:text="调试地址："
+                style="@style/LabelStyle" />
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/debug_addr_et"
+                android:hint="输入远程调试地址"
+                android:text=""
+                android:inputType="text"
+                style="@style/InputStyle" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:text="是否推多码流："
+                style="@style/LabelStyle" />
+
+            <CheckBox
+                android:id="@+id/multi_box"
+                android:focusable="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:text="开启调试开关："
+                style="@style/LabelStyle" />
+
+            <CheckBox
+                android:id="@+id/debug_check_box"
+                android:focusable="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:layout_marginStart="25dp"
+                android:layout_width="wrap_content"
+                android:text="使用硬件解码："
+                style="@style/LabelStyle" />
+
+            <CheckBox
+                android:id="@+id/hard_decoder_box"
+                android:focusable="true"
+                android:checked="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:text="关闭自己视频："
+                android:layout_width="wrap_content"
+                style="@style/LabelStyle" />
+
+            <CheckBox
+                android:id="@+id/video_check_box"
+                android:focusable="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:layout_marginStart="25dp"
+                android:layout_width="wrap_content"
+                android:text="关闭自己音频："
+                style="@style/LabelStyle" />
+
+            <CheckBox
+                android:id="@+id/audio_check_box"
+                android:focusable="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:text="不接他人视频："
+                android:layout_width="wrap_content"
+                style="@style/LabelStyle" />
+
+            <CheckBox
+                android:id="@+id/video_other_box"
+                android:focusable="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:layout_marginStart="25dp"
+                android:layout_width="wrap_content"
+                android:text="不接他人音频："
+                style="@style/LabelStyle" />
+
+            <CheckBox
+                android:id="@+id/audio_other_box"
+                android:focusable="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <RadioGroup
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:text="480P："
+                android:layout_width="104dp"
+                style="@style/LabelStyle" />
+
+            <RadioButton
+                android:id="@+id/video_480_box"
+                android:focusable="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:layout_marginStart="25dp"
+                android:layout_width="104dp"
+                android:text="720P："
+                style="@style/LabelStyle" />
+
+            <RadioButton
+                android:id="@+id/video_720_box"
+                android:focusable="true"
+                android:checked="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </RadioGroup>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/start_btn"
             android:focusable="true"
-            android:layout_width="wrap_content"
+            android:layout_marginTop="15dp"
+            android:text="开始会议"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_marginTop="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
         <TextView
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="20dp"
+            android:id="@+id/ip_addr_tv"
             android:layout_width="wrap_content"
-            android:text="使用硬件编码："
-            style="@style/LabelStyle" />
-
-        <CheckBox
-            android:id="@+id/hard_decoder_box"
-            android:focusable="true"
-            android:checked="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textColor="#000" />
 
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_marginTop="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:text="关闭自己视频："
-            android:layout_width="wrap_content"
-            style="@style/LabelStyle" />
-
-        <CheckBox
-            android:id="@+id/video_check_box"
-            android:focusable="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:layout_marginStart="25dp"
-            android:layout_width="wrap_content"
-            android:text="关闭自己音频："
-            style="@style/LabelStyle" />
-
-        <CheckBox
-            android:id="@+id/audio_check_box"
-            android:focusable="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_marginTop="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:text="不接他人视频："
-            android:layout_width="wrap_content"
-            style="@style/LabelStyle" />
-
-        <CheckBox
-            android:id="@+id/video_other_box"
-            android:focusable="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:layout_marginStart="25dp"
-            android:layout_width="wrap_content"
-            android:text="不接他人音频："
-            style="@style/LabelStyle" />
-
-        <CheckBox
-            android:id="@+id/audio_other_box"
-            android:focusable="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-    </LinearLayout>
-
-    <RadioGroup
-        android:layout_marginTop="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:text="480P："
-            android:layout_width="104dp"
-            style="@style/LabelStyle" />
-
-        <RadioButton
-            android:id="@+id/video_480_box"
-            android:focusable="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:layout_marginStart="25dp"
-            android:layout_width="104dp"
-            android:text="720P："
-            style="@style/LabelStyle" />
-
-        <RadioButton
-            android:id="@+id/video_720_box"
-            android:focusable="true"
-            android:checked="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-    </RadioGroup>
-
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/start_btn"
-        android:focusable="true"
-        android:layout_marginTop="15dp"
-        android:text="开始会议"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <TextView
-        android:layout_marginTop="10dp"
-        android:id="@+id/ip_addr_tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:textColor="#000" />
-</LinearLayout>
+</ScrollView>

@@ -37,7 +37,6 @@
         <activity
             android:name=".activity.MeetingActivity"
             android:configChanges="orientation|screenSize"
-            android:screenOrientation="landscape"
             android:launchMode="singleTask"
             tools:ignore="LockedOrientationActivity" />
         <meta-data

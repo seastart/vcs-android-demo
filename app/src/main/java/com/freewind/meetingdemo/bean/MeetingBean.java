@@ -20,6 +20,15 @@ public class MeetingBean extends BaseBean {
     private String stream_host;
     private int stream_port;
     private String sdk_no;
+    private String wb_host;
+
+    public String getWb_host() {
+        return wb_host;
+    }
+
+    public void setWb_host(String wb_host) {
+        this.wb_host = wb_host;
+    }
 
     public String getMeeting_host() {
         return meeting_host;
