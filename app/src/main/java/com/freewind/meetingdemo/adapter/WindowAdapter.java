@@ -25,24 +25,41 @@ import com.freewind.meetingdemo.activity.MeetingActivity;
 import com.freewind.meetingdemo.bean.MemberBean;
 import com.freewind.meetingdemo.util.DisplayUtil;
 import com.freewind.vcs.Models;
-import com.ook.android.VCS_EVENT_TYPE;
 import com.ook.android.ikPlayer.VcsPlayerGlTextureView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHolder> {
+public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHolder> implements View.OnClickListener{
     private List<MemberBean> memberList;
-    private HashMap<String, MyViewHolder> holders;
+    private HashMap<Integer, MyViewHolder> holders;
     private Context context;
 
-    public HashMap<String, MyViewHolder> getHolders() {
-        return holders == null ? new HashMap<String, MyViewHolder>() : holders;
+    public HashMap<Integer, MyViewHolder> getHolders() {
+        return holders == null ? new HashMap<>() : holders;
     }
 
     public List<MemberBean> getMemberList() {
         return memberList;
+    }
+
+    private OnRecyclerViewItemClickListener mOnItemClickListener = null;
+
+    //define interface
+    public interface OnRecyclerViewItemClickListener {
+        void onItemClick(View view, MemberBean memberBean);
+    }
+
+    public void setOnItemClickListener(OnRecyclerViewItemClickListener listener) {
+        this.mOnItemClickListener = listener;
+    }
+
+    public void onClick(View v) {
+        if (mOnItemClickListener != null) {
+            //注意这里使用getTag方法获取数据
+            mOnItemClickListener.onItemClick(v, (MemberBean) v.getTag());
+        }
     }
 
     @Override
@@ -62,14 +79,14 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         notifyItemRangeChanged(memberList.size() - 1,1);//通知数据与界面重新绑定
     }
 
-    public void removeItem(String clienId){
+    public void removeItem(int clientId){
         if (memberList.size() < 1){
             return;
         }
         for (int position = 0; position < memberList.size(); position++){
-            if (clienId.equals(memberList.get(position).getSdkNo())){
-//                holders.get(clienId).itemFl.removeView(holders.get(clienId).meetingGLSurfaceView);
-                holders.remove(clienId);
+            if (clientId == memberList.get(position).getSdkNo()){
+//                holders.get(clientId).itemFl.removeView(holders.get(clientId).meetingGLSurfaceView);
+                holders.remove(clientId);
                 notifyItemRemoved(position);
                 memberList.remove(position);
                 notifyItemRangeChanged(position, memberList.size() - position);//通知数据与界面重新绑定
@@ -82,15 +99,17 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_window, parent, false);
-        return new MyViewHolder(view);
+        MyViewHolder holder = new MyViewHolder(view);
+        view.setOnClickListener(this);
+        return holder;
     }
 
     @Override
     public void onBindViewHolder(@NonNull final WindowAdapter.MyViewHolder holder, final int position) {
         final MemberBean memberBean = memberList.get(position);
-        holder.nameTv.setText(memberBean.getSdkNo());
+        holder.nameTv.setText(memberBean.getSdkNo() + "");
 
-        ((MeetingActivity)context).setVcsPlayerScale(holder.meetingGLSurfaceView, memberBean);
+        ((MeetingActivity)context).setVcsPlayerScale(holder.textureView, memberBean);
 
         if (memberBean.isCloseOtherVideo()){
 //            holder.otherCloseTv.setVisibility(View.VISIBLE);
@@ -135,81 +154,47 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
             holder.hostCloseVideoBtn.setText("主持人开启视频");
         }
 
-        holder.muteBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                memberBean.setCloseOtherAudio(!memberBean.isCloseOtherAudio());
-                notifyItemChanged(position);
-                ((MeetingActivity)context).muteOtherAudio(memberBean.getSdkNo(), memberBean.isCloseOtherAudio());
-            }
+        holder.muteBtn.setOnClickListener(view -> {
+            memberBean.setCloseOtherAudio(!memberBean.isCloseOtherAudio());
+            notifyItemChanged(position);
+            ((MeetingActivity)context).muteOtherAudio(memberBean.getSdkNo(), memberBean.isCloseOtherAudio());
         });
 
-        holder.closeVideoBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                memberBean.setCloseOtherVideo(!memberBean.isCloseOtherVideo());
-                notifyItemChanged(position);
-                ((MeetingActivity)context).closeOtherVideo(memberBean.getSdkNo(), memberBean.isCloseOtherVideo());
-            }
+        holder.closeVideoBtn.setOnClickListener(view -> {
+            memberBean.setCloseOtherVideo(!memberBean.isCloseOtherVideo());
+            notifyItemChanged(position);
+            ((MeetingActivity)context).closeOtherVideo(memberBean.getSdkNo(), memberBean.isCloseOtherVideo());
         });
 
-        holder.kickBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ((MeetingActivity)context).kickOut(memberBean.getAccountId());
-            }
+        holder.kickBtn.setOnClickListener(view -> ((MeetingActivity)context).kickOut(memberBean.getAccountId()));
+
+        holder.hostCloseVideoBtn.setOnClickListener(view -> ((MeetingActivity)context).hostCtrlMember(
+                memberBean.getAccountId(),
+                memberBean.getCloseVideo() == Models.DeviceState.DS_Active ? Models.DeviceState.DS_Disabled : Models.DeviceState.DS_Active,
+                null));
+
+        holder.hostCloseAudioBtn.setOnClickListener(view -> ((MeetingActivity)context).hostCtrlMember(
+                memberBean.getAccountId(),
+                null,
+                memberBean.getMute() == Models.DeviceState.DS_Active ? Models.DeviceState.DS_Disabled : Models.DeviceState.DS_Active));
+
+        holder.btn1.setOnClickListener(view -> {
+            ((MeetingActivity)context).useChannel(memberBean.getSdkNo(), 1);//track0
         });
 
-        holder.hostCloseVideoBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ((MeetingActivity)context).hostCtrlMember(
-                        memberBean.getAccountId(),
-                        memberBean.getCloseVideo() == Models.DeviceState.DS_Active ? Models.DeviceState.DS_Disabled : Models.DeviceState.DS_Active,
-                        null);
-            }
+        holder.btn2.setOnClickListener(view -> {
+            ((MeetingActivity)context).useChannel(memberBean.getSdkNo(), 2);//track1
         });
 
-        holder.hostCloseAudioBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ((MeetingActivity)context).hostCtrlMember(
-                        memberBean.getAccountId(),
-                        null,
-                        memberBean.getMute() == Models.DeviceState.DS_Active ? Models.DeviceState.DS_Disabled : Models.DeviceState.DS_Active);
-            }
+        holder.btn3.setOnClickListener(view -> {
+            ((MeetingActivity)context).useChannel(memberBean.getSdkNo(), 4);//track2
         });
 
-        holder.btn1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-//                holder.meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.CENTERCROP);
-                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getSdkNo()), 1);//track0
-            }
+        holder.btn4.setOnClickListener(view -> {
+            ((MeetingActivity)context).useChannel(memberBean.getSdkNo(), 3);//track3
         });
 
-        holder.btn2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-//                holder.meetingGLSurfaceView.setScaleType(VCS_EVENT_TYPE.CENTERINSIDE);
-                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getSdkNo()), 2);//track1
-            }
-        });
-
-        holder.btn3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getSdkNo()), 4);//track2
-            }
-        });
-
-        holder.btn4.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ((MeetingActivity)context).useChannel(Integer.parseInt(memberBean.getSdkNo()), 3);//track3
-            }
-        });
-
+        holder.itemView.setTag(memberBean);
         holders.put(memberBean.getSdkNo(), holder);
     }
 
@@ -219,10 +204,10 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        public VcsPlayerGlTextureView meetingGLSurfaceView;
-        TextView nameTv;
+        public VcsPlayerGlTextureView textureView;
+        public TextView nameTv;
         ImageView selfMuteIv, otherMuteIv;
-        TextView selfCloseTv, otherCloseTv;
+        public TextView selfCloseTv, otherCloseTv;
         Button closeVideoBtn, muteBtn, kickBtn, hostCloseVideoBtn, hostCloseAudioBtn, btn1, btn2, btn3, btn4;
         public FrameLayout frameLayout;
 
@@ -230,7 +215,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
             super(convertView);
 //            setIsRecyclable(false);
 
-            meetingGLSurfaceView = convertView.findViewById(R.id.gl_view);
+            textureView = convertView.findViewById(R.id.gl_view);
 
             frameLayout = convertView.findViewById(R.id.fl_view);
 
@@ -249,7 +234,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
             btn3 = convertView.findViewById(R.id.btn3);
             btn4 = convertView.findViewById(R.id.btn4);
 
-            int width=0, height=0;
+            int width, height;
 
             if (((MeetingActivity)context).isLand){
                 height = (DisplayUtil.getInstance().getMobileWidth(context)/((MeetingActivity)context).spanCount) * 9 / 16;

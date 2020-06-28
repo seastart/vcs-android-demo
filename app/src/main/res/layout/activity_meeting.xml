@@ -26,7 +26,7 @@
         android:background="#009688"
         android:textColor="#fff"
         android:textSize="18sp"
-        android:text="关闭预览"/>
+        android:text="关闭画面"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/window_rcview"

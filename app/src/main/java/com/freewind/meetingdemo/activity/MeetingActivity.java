@@ -7,7 +7,6 @@ import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
@@ -34,6 +33,7 @@ import com.freewind.meetingdemo.util.FloatingButtonService;
 import com.freewind.meetingdemo.util.PermissionUtil;
 import com.freewind.meetingdemo.util.Requester;
 import com.freewind.meetingdemo.util.ToastUtil;
+import com.freewind.vcs.CameraPreview;
 import com.freewind.vcs.Models;
 import com.freewind.vcs.RoomClient;
 import com.freewind.vcs.RoomEvent;
@@ -54,7 +54,7 @@ import butterknife.OnClick;
  * update_at 2019/7/30
  * description
  */
-public class MeetingActivity extends PermissionActivity implements RoomEvent {
+public class MeetingActivity extends PermissionActivity implements RoomEvent, CameraPreview {
 
     RoomClient roomClient;
     @BindView(R.id.cameraTextureView)
@@ -82,7 +82,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
     @BindView(R.id.los_tv)
     TextView losTv;
     @BindView(R.id.client_tv)
-    TextView clientTv;
+    TextView nameTv;
     @BindView(R.id.progress_bar)
     ProgressBar progressBar;
     @BindView(R.id.webView)
@@ -139,7 +139,8 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
 
     public int spanCount = 2;
 
-    OrientationEventListener orientationEventListener;
+    public MemberBean mainWindowMember;//保存在主窗口的成员的信息
+    public MemberBean selfMember;
 
     @Override
     public void onEnter(int result) {
@@ -166,6 +167,10 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
                 @Override
                 protected void onComplete(boolean success) {
                     progressBar.setVisibility(View.GONE);
+                    if (!success){
+                        finish();
+                        ToastUtil.getInstance().showLongToast("连接失败，请重新进入房间");
+                    }
                 }
             });
         }
@@ -223,7 +228,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         Log.e("5555555", "onNotifyEnter: 有人进入房间" + "  sdkno: " + sdkNo);
 
         final MemberBean memberBean = new MemberBean();
-        memberBean.setSdkNo(sdkNo + "");
+        memberBean.setSdkNo(sdkNo);
         memberBean.setAccountId(account.getId());
         memberBean.setCloseVideo(account.getVideoState());
         memberBean.setMute(account.getAudioState());
@@ -251,7 +256,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         } else {
             int count = 0;
             for (MemberBean s : windowAdapter.getMemberList()) {
-                if (s.getSdkNo().equals("" + sdkNo)) {
+                if (s.getSdkNo() == sdkNo) {
                     count++;
                     break;
                 }
@@ -269,8 +274,8 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
 
         if (!windowAdapter.getMemberList().isEmpty()) {
             for (MemberBean s : windowAdapter.getMemberList()) {
-                if (s.getSdkNo().equals(sdkNo + "")) {
-                    windowAdapter.removeItem(sdkNo + "");
+                if (s.getSdkNo() == sdkNo) {
+                    windowAdapter.removeItem(sdkNo);
                     break;
                 }
             }
@@ -290,15 +295,21 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
     }
 
     @Override
-    public void onFrame(byte[] ost, byte[] tnd, byte[] trd, int width, int height, int format, int clientId, int mask) {
+    public void onFrame(byte[] ost, byte[] tnd, byte[] trd, int width, int height, int format, int streamId, int mask) {
 //        Log.e("3333333333", "onFrame  " + "  clientId: " + clientId + "   " + width + " " + height + "   mask:" + mask);
-        final WindowAdapter.MyViewHolder holder;
-
-        holder = windowAdapter.getHolders().get(clientId + "");
-
-        if (holder != null && holder.meetingGLSurfaceView != null) {
-            holder.meetingGLSurfaceView.update(width, height, format);
-            holder.meetingGLSurfaceView.update(ost, tnd, trd, format);
+        if (windowAdapter != null) {
+            if (mainWindowMember != null && mainWindowMember.getSdkNo() == streamId) {
+                if (cameraTextureView != null) {
+                    cameraTextureView.update(width, height, format);
+                    cameraTextureView.update(ost, tnd, trd, format);
+                }
+            } else {
+                WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(streamId);
+                if (holder != null && holder.textureView != null) {
+                    holder.textureView.update(width, height, format);
+                    holder.textureView.update(ost, tnd, trd, format);
+                }
+            }
         }
     }
 
@@ -548,7 +559,8 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         initWebView();
 
         cameraTextureView.setCameraId(isFront ? 1 : 0);//1：前置  0：后置
-        cameraTextureView.setLANDSCAPE(isLand);//true:横屏 false:竖屏
+        cameraTextureView.setLANDSCAPE(getDeviceRotation());//true:横屏 false:竖屏
+
     }
 
     private void initView() {
@@ -590,32 +602,12 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         windowRcView.getRecycledViewPool().setMaxRecycledViews(0, 0);
         windowRcView.setLayoutManager(new GridLayoutManager(this, spanCount));
 
-        clientTv.setText(UserConfig.getUserInfo().getData().getAccount().getRoom().getSdk_no());
+        nameTv.setText(UserConfig.getUserInfo().getData().getAccount().getRoom().getSdk_no());
 
-        orientationEventListener = new OrientationEventListener(this) {
-            @Override
-            public void onOrientationChanged(int orientation) {
-                if (orientation == OrientationEventListener.ORIENTATION_UNKNOWN) {
-                    return; // 手机平放时，检测不到有效的角度
-                }
-                // 只检测是否有四个角度的改变
-                if (orientation > 350 || orientation < 10) {
-                    // 0度：手机默认竖屏状态（home键在正下方）
-                    Log.d(TAG, "下");
-                } else if (orientation > 80 && orientation < 100) {
-                    // 90度：手机顺时针旋转90度横屏（home建在左侧）
-                    Log.d(TAG, "左");
-
-                } else if (orientation > 170 && orientation < 190) {
-                    // 180度：手机顺时针旋转180度竖屏（home键在上方）
-                    Log.d(TAG, "上");
-                } else if (orientation > 260 && orientation < 280) {
-                    // 270度：手机顺时针旋转270度横屏，（home键在右侧）
-                    Log.d(TAG, "右");
-                }
-            }
-        };
-//        orientationEventListener.enable();
+        windowAdapter.setOnItemClickListener((view, memberBean) -> {
+            clickWindow(memberBean);
+            setVcsPlayer();
+        });
     }
 
     //初始化API
@@ -664,15 +656,8 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         roomClient.setAgcAec(agc, aec);//设置AGC,AEC
         roomClient.setFps(fps);//设置帧率
 
-        if (!isLand) {
-            if (isFront) {
-                roomClient.getApi().setDegree(270);//视频输出角度 //前置相机270
-            } else {
-                roomClient.getApi().setDegree(90);//视频输出角度 //前置相机270
-            }
-        }
+        roomClient.openCamera(null, this);//设置预览view
 
-        roomClient.openCamera(cameraTextureView);//设置预览view
         roomClient.enableXDelay(true);//自适应延迟
         roomClient.useHwDecoder(hardDecoder);//是否硬解码
 
@@ -694,18 +679,25 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
             closePreviewTv.setVisibility(View.VISIBLE);
         }
 
+        selfMember = new MemberBean();
+        selfMember.setAccountId(UserConfig.getUserInfo().getData().getAccount().getId());
+        selfMember.setSdkNo(Integer.parseInt(UserConfig.getUserInfo().getData().getAccount().getRoom().getSdk_no()));
+        selfMember.setMute(isSendSelfAudio ? Models.DeviceState.DS_Active : Models.DeviceState.DS_Closed);
+        selfMember.setCloseVideo(isSendSelfVideo ? Models.DeviceState.DS_Active : Models.DeviceState.DS_Closed);
+
+        mainWindowMember = selfMember;
+
         roomClient.setOrientationChange((streamId, x, y) -> {
             Log.e("5555555", "setOrientationChange  x:" + x + "  y:" + y);
-
             for (MemberBean memberBean : windowAdapter.getMemberList()){
-                WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(streamId + "");
+                WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(streamId);
 
-                if (memberBean.getSdkNo().equals(streamId+"")){
+                if (memberBean.getSdkNo()==streamId){
                     memberBean.setX(x);
                     memberBean.setY(y);
 
                     if (holder != null) {
-                        setVcsPlayerScale(holder.meetingGLSurfaceView, memberBean);
+                        setVcsPlayerScale(holder.textureView, memberBean);
                     }
                     break;
                 }
@@ -715,24 +707,168 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         roomClient.open();
     }
 
+    //设置显示控件的属性
+    private void setVcsPlayer(){
+        //设置大窗口属性，currentMember代表当前大窗口展示人的信息
+        if (mainWindowMember.getAccountId().equals(roomClient.getAccount().getId())){
+            //如果切换后的大窗口是自己预览画面
+            cameraTextureView.setCameraId(isFront ? 1 : 0);//1：前置  0：后置
+            cameraTextureView.setLANDSCAPE(getDeviceRotation());//true:横屏 false:竖屏
+            cameraTextureView.setScaleType(VCS_EVENT_TYPE.CENTERINSIDE);//默认CENTERINSIDE
+        }else {//大窗口不是自己的预览画面,则设置为默认状态
+            cameraTextureView.setCameraId(0);//1：前置  0：后置
+            cameraTextureView.setLANDSCAPE(90);
+            setVcsPlayerScale(cameraTextureView, mainWindowMember);
+        }
+
+        //设置小窗口属性
+        for (MemberBean member : windowAdapter.getMemberList()){
+            WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(member.getSdkNo());
+
+            if (mainWindowMember.getAccountId().equals(member.getAccountId())){
+                //当前成员在大窗口上，则该小窗口显示的是自己预览画面
+                if (holder != null){
+                    holder.textureView.setCameraId(isFront ? 1 : 0);//1：前置  0：后置
+                    holder.textureView.setLANDSCAPE(getDeviceRotation());
+                    holder.textureView.setScaleType(VCS_EVENT_TYPE.CENTERINSIDE);//默认CENTERINSIDE
+                }
+            }else {
+                //小窗口显示原先成员信息
+                if (holder != null){
+                    holder.textureView.setCameraId(0);//恢复默认
+                    holder.textureView.setLANDSCAPE(90);//恢复默认
+                    setVcsPlayerScale(holder.textureView, member);
+                }
+            }
+        }
+    }
+
     public void setVcsPlayerScale(VcsPlayerGlTextureView textureView, MemberBean memberBean){
         if (memberBean.getX() == 1 && !isLand){
             textureView.setScaleType(VCS_EVENT_TYPE.CENTERCROP);
-            Log.e("5555555", "setOrientationChange crop");
+            Log.e("5555555", "setOrientationChange x crop");
         }else {
             if (memberBean.getY() == 1 && isLand){
                 textureView.setScaleType(VCS_EVENT_TYPE.CENTERCROP);
-                Log.e("5555555", "setOrientationChange crop");
-
+                Log.e("5555555", "setOrientationChange y crop");
             }else {
                 textureView.setScaleType(VCS_EVENT_TYPE.CENTERINSIDE);
                 Log.e("5555555", "setOrientationChange inside");
-
             }
         }
+    }
 
-        textureView.setCameraId(0);
-        textureView.setLANDSCAPE(true);
+    /**
+     * 小窗口点击事件
+     */
+    private void clickWindow(MemberBean memberBean) {
+        if (windowAdapter != null) {
+            WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(memberBean.getSdkNo());
+            if (mainWindowMember == memberBean){//点击的小窗口正显示在大窗口
+                mainWindowMember = selfMember;
+            }else {
+
+
+                updateViewInfoSmallOld(mainWindowMember);//恢复原先小窗口的信息，用先前的memberBean
+                mainWindowMember = memberBean;
+            }
+            updateViewInfo();
+            updateViewInfoSmall(memberBean, holder);
+        }
+    }
+
+    /**
+     * 更新主画面的状态信息，昵称，音视频状态等
+     */
+    private void updateViewInfo(){
+        if (mainWindowMember == null){
+            return;
+        }
+
+        nameTv.setText(mainWindowMember.getSdkNo() + "");
+        closePreviewTv.setVisibility(mainWindowMember.isCloseVideo() ? View.VISIBLE : View.GONE);
+        closePreviewTv.setText(mainWindowMember.getSdkNo() + "\n" + "视频已关闭");
+    }
+
+    /**
+     * 更新小窗口的状态信息
+     */
+    private void updateViewInfoSmall(MemberBean memberBean, WindowAdapter.MyViewHolder holder){
+        if (holder == null){
+            return;
+        }
+        if (mainWindowMember != selfMember){//大窗口不是预览，小窗口显示自己的
+            holder.nameTv.setText(roomClient.getAccount().getStreamId() + "");
+            holder.selfCloseTv.setText(roomClient.getAccount().getStreamId() + "\n" + "视频已关闭");
+            holder.selfCloseTv.setVisibility(selfMember.isCloseVideo() ? View.VISIBLE : View.GONE);
+
+            //大窗口设置大流
+            Models.Account account = roomClient.getAccountList().get(mainWindowMember.getSdkNo());
+            if (account != null){
+                if (account.getTerminalType() == Models.TerminalType.Terminal_Embedded){
+                    for (Models.Stream stream : account.getStreamsList()){
+                        if (stream.getId() == 1){//取id=1的流为默认流
+                            roomClient.pickStream(account.getId(), stream.getChannel(), stream.getChannelType(), Models.StreamType.Stream_Main);
+                            break;
+                        }
+                    }
+                }else {
+                    roomClient.pickStreamMain(account.getId());
+                }
+            }
+        } else {
+            if (memberBean == null){
+                return;
+            }
+            holder.nameTv.setText(memberBean.getSdkNo() + "");
+            holder.selfCloseTv.setText(memberBean.getSdkNo() + "\n" + "视频已关闭");
+            holder.selfCloseTv.setVisibility(memberBean.isCloseVideo() ? View.VISIBLE : View.GONE);
+
+            //恢复为小码流
+            Models.Account account = roomClient.getAccountList().get(memberBean.getSdkNo());
+            if (account != null){
+                if (account.getTerminalType() == Models.TerminalType.Terminal_Embedded){//录播主机
+                    for (Models.Stream stream : account.getStreamsList()){
+                        if (stream.getId() == 1){
+                            roomClient.pickStream(account.getId(), stream.getChannel(), stream.getChannelType(), Models.StreamType.Stream_Sub);
+                            break;
+                        }
+                    }
+                }else {
+                    roomClient.pickStreamSub(account.getId());
+                }
+            }
+        }
+    }
+
+    /**
+     * 恢复原先小窗口的信息
+     */
+    private void updateViewInfoSmallOld(MemberBean memberBean){
+        if (memberBean == null){
+            return;
+        }
+        WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(memberBean.getSdkNo());
+        if (holder != null){
+            holder.nameTv.setText(memberBean.getSdkNo() + "");
+            holder.selfCloseTv.setText(memberBean.getSdkNo() + "\n" + "视频已关闭");
+            holder.selfCloseTv.setVisibility(memberBean.isCloseVideo() ? View.VISIBLE : View.GONE);
+//            holder.textureView.setMirror(0);
+        }
+        //恢复小流
+        Models.Account account = roomClient.getAccountList().get(memberBean.getSdkNo());
+        if (account != null){
+            if (account.getTerminalType() == Models.TerminalType.Terminal_Embedded){
+                for (Models.Stream stream : account.getStreamsList()){
+                    if (stream.getId() == 1){
+                        roomClient.pickStream(account.getId(), stream.getChannel(), stream.getChannelType(), Models.StreamType.Stream_Sub);
+                        break;
+                    }
+                }
+            }else {
+                roomClient.pickStreamSub(account.getId());
+            }
+        }
     }
 
     @Override
@@ -773,13 +909,13 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
     }
 
     //设置是否接收某人的视频
-    public void closeOtherVideo(String clientId, boolean isClose) {
-        roomClient.enableRecvVideo(Integer.parseInt(clientId), !isClose);
+    public void closeOtherVideo(int streamId, boolean isClose) {
+        roomClient.enableRecvVideo(streamId, !isClose);
     }
 
     //设置是否接收某人音频
-    public void muteOtherAudio(String clientId, boolean isMute) {
-        roomClient.enableRecvAudio(Integer.parseInt(clientId), !isMute);
+    public void muteOtherAudio(int streamId, boolean isMute) {
+        roomClient.enableRecvAudio(streamId, !isMute);
     }
 
     //主持人踢人
@@ -801,6 +937,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
     private void closeSelfVideo(boolean isFromNotify, Models.DeviceState fromNotifyState) {
         if (isFromNotify) {//来自会控操作
             roomClient.enableSendVideo(fromNotifyState);
+            selfMember.setCloseVideo(fromNotifyState);
             isSendSelfVideo = fromNotifyState != Models.DeviceState.DS_Disabled;
         } else {
             Models.Account account = roomClient.getAccount();
@@ -811,15 +948,23 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
             isSendSelfVideo = account.getVideoState() != Models.DeviceState.DS_Active;
             if (isSendSelfVideo) {
                 roomClient.enableSendVideo(Models.DeviceState.DS_Active);
+                selfMember.setCloseVideo(Models.DeviceState.DS_Active);
             } else {
                 roomClient.enableSendVideo(Models.DeviceState.DS_Closed);
+                selfMember.setCloseVideo(Models.DeviceState.DS_Closed);
             }
         }
+
+        if (mainWindowMember == selfMember) {
+            closePreviewTv.setVisibility(!isSendSelfVideo ? View.VISIBLE : View.GONE);
+        } else {
+            WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(mainWindowMember.getSdkNo());
+            holder.selfCloseTv.setVisibility(selfMember.isCloseVideo() ? View.VISIBLE : View.GONE);
+        }
+
         if (isSendSelfVideo) {
-            closePreviewTv.setVisibility(View.GONE);
             closeSelfVideoBtn.setText("关闭自己的视频");
         } else {
-            closePreviewTv.setVisibility(View.VISIBLE);
             closeSelfVideoBtn.setText("打开自己的视频");
         }
     }
@@ -828,6 +973,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
     private void closeSelfAudio(boolean isFromNotify, Models.DeviceState fromNotifyState) {
         if (isFromNotify) {
             roomClient.enableSendAudio(fromNotifyState);
+            selfMember.setMute(fromNotifyState);
             isSendSelfAudio = fromNotifyState != Models.DeviceState.DS_Disabled;
         } else {
             Models.Account account = roomClient.getAccount();
@@ -838,10 +984,13 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
             isSendSelfAudio = account.getAudioState() != Models.DeviceState.DS_Active;
             if (isSendSelfAudio) {
                 roomClient.enableSendAudio(Models.DeviceState.DS_Active);
+                selfMember.setMute(Models.DeviceState.DS_Active);
             } else {
                 roomClient.enableSendAudio(Models.DeviceState.DS_Closed);
+                selfMember.setMute(Models.DeviceState.DS_Closed);
             }
         }
+
         if (isSendSelfAudio) {
             closeSelfAudioBtn.setText("关闭自己的音频");
         } else {
@@ -865,46 +1014,33 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-//        closeSelfVideo(false);
-    }
-
-    @Override
     public void onConfigurationChanged(@NotNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
         isLand = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE;
-        cameraTextureView.setLANDSCAPE(isLand);
 
         for (MemberBean memberBean : windowAdapter.getMemberList()){
             WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(memberBean.getSdkNo());
             if (holder != null){
-                setVcsPlayerScale(holder.meetingGLSurfaceView, memberBean);
+                setVcsPlayerScale(holder.textureView, memberBean);
             }
         }
         changeSize();
 
-        String TAG = "666666";
-        int angle = getWindowManager().getDefaultDisplay().getRotation();
-        switch (angle) {
-            case Surface.ROTATION_0:
-                Log.d(TAG, "Rotation_0");
-                break;
-            case Surface.ROTATION_90:
-                Log.d(TAG, "ROTATION_90");
-                break;
-            case Surface.ROTATION_180:
-                Log.d(TAG, "ROTATION_180");
-                break;
-            case Surface.ROTATION_270:
-                Log.d(TAG, "ROTATION_270");
-                break;
-            default:
-                Log.d(TAG, "Default Rotation!");
-                break;
+        if (mainWindowMember.getSdkNo() == selfMember.getSdkNo()){
+            cameraTextureView.setLANDSCAPE(getDeviceRotation());
+        }else {
+            WindowAdapter.MyViewHolder holder;
+            for (MemberBean memberBean : windowAdapter.getMemberList()){
+                if (memberBean.getSdkNo() == mainWindowMember.getSdkNo()){
+                    holder = windowAdapter.getHolders().get(memberBean.getSdkNo());
+                    if (holder != null){
+                        holder.textureView.setLANDSCAPE(getDeviceRotation());
+                    }
+                    break;
+                }
+            }
         }
-
     }
 
     Intent floatIntent;
@@ -1071,4 +1207,39 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent {
         boardCl.setVisibility(View.GONE);
     }
 
+    @Override
+    public void onPreviewFrame(byte[] yuv, int width, int height, long stamp, int format) {
+        if (mainWindowMember.getSdkNo() == selfMember.getSdkNo()){//主画面是自己的预览
+            if (cameraTextureView != null){
+                cameraTextureView.update(width, height, format);
+                cameraTextureView.update(yuv, format);
+            }
+        }else {//切换了位置，预览在小窗口
+            WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(mainWindowMember.getSdkNo());
+            if (holder != null) {
+                holder.textureView.update(width, height, format);
+                holder.textureView.update(yuv, format);
+            }
+        }
+    }
+
+    private int getDeviceRotation(){
+        int rotation = 0;
+        int angle = getWindowManager().getDefaultDisplay().getRotation();
+        switch (angle) {
+            case Surface.ROTATION_0:
+                rotation = 0;
+                break;
+            case Surface.ROTATION_90:
+                rotation = 90;
+                break;
+            case Surface.ROTATION_180:
+                rotation = 180;
+                break;
+            case Surface.ROTATION_270:
+                rotation = 270;
+                break;
+        }
+        return rotation;
+    }
 }

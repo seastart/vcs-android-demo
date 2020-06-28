@@ -31,8 +31,20 @@
         android:layout_height="wrap_content"
         android:text="保存"/>
 
-    <com.ook.android.ikPlayer.VcsPlayerGlTextureView
+    <TextView
+        android:id="@+id/tv180"
+        android:padding="15dp"
         android:layout_width="match_parent"
-        android:layout_height="200dp"/>
+        android:layout_height="wrap_content"
+        android:textColor="#000"
+        android:text="http://180.97.182.244:5000"/>
+
+    <TextView
+        android:id="@+id/tvezm"
+        android:padding="15dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#000"
+        android:text="http://ezm.ys7.com"/>
 
 </LinearLayout>

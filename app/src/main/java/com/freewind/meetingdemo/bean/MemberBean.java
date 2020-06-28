@@ -21,7 +21,7 @@ public class MemberBean implements Serializable {
     private boolean closeOtherAudio;//本地是否关闭音频
     private int x;
     private int y;
-    private String sdkNo;
+    private int sdkNo;
     private String accountId;
 
     public int getX() {
@@ -81,11 +81,11 @@ public class MemberBean implements Serializable {
         this.closeVideo = deviceState;
     }
 
-    public String getSdkNo() {
+    public int getSdkNo() {
         return sdkNo;
     }
 
-    public void setSdkNo(String sdkNo) {
+    public void setSdkNo(int sdkNo) {
         this.sdkNo = sdkNo;
     }
 
