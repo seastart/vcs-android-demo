@@ -7,12 +7,7 @@
     android:id="@+id/root"
     tools:context=".activity.MeetingActivity">
 
-<!--    <com.ook.android.GLCameraView-->
-<!--        android:id="@+id/cameraSurfaceView"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent" />-->
-
-    <com.ook.android.ikPlayer.VcsPlayerGlTextureView
+    <com.ook.android.ikPlayer.VcsPlayerGlSurfaceView
         android:id="@+id/cameraTextureView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
@@ -44,8 +39,8 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
             android:text="启动录屏"
-            app:layout_constraintBottom_toBottomOf="@+id/camera_switch_btn"
-            app:layout_constraintEnd_toStartOf="@+id/send_msg_btn" />
+            app:layout_constraintBottom_toTopOf="@+id/send_msg_btn"
+            app:layout_constraintStart_toStartOf="@+id/send_msg_btn" />
 
         <Button
             android:id="@+id/send_msg_btn"
@@ -135,6 +130,15 @@
             android:text="开启白板"
             app:layout_constraintBottom_toTopOf="@+id/change_orientation_btn"
             app:layout_constraintStart_toStartOf="@+id/change_orientation_btn" />
+
+        <Button
+            android:id="@+id/openBoardImgBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="共享图片"
+            app:layout_constraintBottom_toTopOf="@+id/openBoardBtn"
+            app:layout_constraintStart_toStartOf="@+id/openBoardBtn" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

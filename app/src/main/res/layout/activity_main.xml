@@ -13,6 +13,13 @@
         android:paddingEnd="15dp"
         android:orientation="vertical">
 
+        <Button
+            android:id="@+id/callBtn"
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="呼叫测试"/>
+
         <LinearLayout
             android:layout_marginTop="10dp"
             android:layout_width="match_parent"
@@ -136,6 +143,7 @@
 
             <CheckBox
                 android:id="@+id/multi_box"
+                android:checked="true"
                 android:focusable="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />

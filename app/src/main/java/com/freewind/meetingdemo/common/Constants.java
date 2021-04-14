@@ -12,7 +12,7 @@ public class Constants {
 
     //服务器相关配置
 //    public static String SERVER_HOST = "http://101.37.67.56:5000/";
-    public static String SERVER_HOST = "http://180.97.182.244:5000";
+    public static String SERVER_HOST = "http://vcs.anyconf.cn:5000";
 //    public static String SERVER_HOST = "http://192.168.43.113:5000/";
 
 //    public static String SERVER_HOST = "http://103.219.32.162:5100/";

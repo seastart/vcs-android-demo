@@ -8,6 +8,8 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.CheckBox;
 import android.widget.RadioButton;
 import android.widget.TextView;
@@ -19,9 +21,11 @@ import com.freewind.meetingdemo.MyApplication;
 import com.freewind.meetingdemo.R;
 import com.freewind.meetingdemo.bean.RoomInfoBean;
 import com.freewind.meetingdemo.common.Constants;
+import com.freewind.meetingdemo.common.UserConfig;
 import com.freewind.meetingdemo.http.HttpCallBack;
 import com.freewind.meetingdemo.util.Requester;
 import com.freewind.meetingdemo.util.ToastUtil;
+import com.freewind.vcs.Models;
 import com.freewind.vcs.VcsServer;
 
 import java.net.Inet4Address;
@@ -143,48 +147,62 @@ public class MainActivity extends AppCompatActivity {
         return "0.0.0.0";
     }
 
-    @OnClick(R.id.start_btn)
-    public void onClick() {
-        Requester.enterMeeting(Objects.requireNonNull(roomNumberEt.getText()).toString(), "", new HttpCallBack<RoomInfoBean>() {
-            @Override
-            public void onSucceed(RoomInfoBean data) {
-                if (data.getCode() == Constants.NEED_PWD) {
-                    ToastUtil.getInstance().showLongToast("该会议室需要密码");
-                    return;
-                }
 
-                int level;
-                if (video720Box.isChecked()) {
-                    level = 1;
-                } else {
-                    level = 0;
-                }
+    @OnClick({R.id.start_btn, R.id.callBtn})
+    public void onClick(View view) {
+        switch (view.getId()){
+            case R.id.start_btn:
+                Requester.enterMeeting(this, Objects.requireNonNull(roomNumberEt.getText()).toString(), "", new HttpCallBack<RoomInfoBean>() {
+                    @Override
+                    public void onSucceed(RoomInfoBean data) {
+                        if (data.getCode() == Constants.NEED_PWD) {
+                            ToastUtil.getInstance().showLongToast("该会议室需要密码");
+                            return;
+                        }
 
-                startActivity(new Intent(MainActivity.this, MeetingActivity.class)
-                        .putExtra(MeetingActivity.DEBUG_ADDR, Objects.requireNonNull(debugAddrEt.getText()).toString())
-                        .putExtra(MeetingActivity.DEBUG_SWITCH, debugCheckBox.isChecked())
-                        .putExtra(MeetingActivity.MULTI, multiBox.isChecked())
-                        .putExtra(MeetingActivity.AGC, Objects.requireNonNull(agcEt.getText()).toString())
-                        .putExtra(MeetingActivity.AEC, Objects.requireNonNull(aecEt.getText()).toString())
-                        .putExtra(MeetingActivity.FPS, Objects.requireNonNull(fpsEt.getText()).toString())
-                        .putExtra(MeetingActivity.SAMPLE_RATE, Integer.valueOf(Objects.requireNonNull(sampleRateEt.getText()).toString()))
-                        .putExtra(MeetingActivity.CLOSE_OTHER_VIDEO, closeOtherVideoBox.isChecked())
-                        .putExtra(MeetingActivity.CLOSE_OTHER_AUDIO, closeOtherAudioBox.isChecked())
-                        .putExtra(MeetingActivity.CLOSE_SELF_VIDEO, closeSelfVideoBox.isChecked())
-                        .putExtra(MeetingActivity.CLOSE_SELF_AUDIO, closeSelfAudioBox.isChecked())
-                        .putExtra(MeetingActivity.HARD_DECODER, hardDecoderBox.isChecked())
-                        .putExtra(MeetingActivity.VIDEO_LEVEL, level)
+                        int level;
+                        if (video720Box.isChecked()) {
+                            level = 1;
+                        } else {
+                            level = 0;
+                        }
 
-                        .putExtra(MeetingActivity.ROOM_INFO, data.getData())
-                );
-            }
+                        startActivity(new Intent(MainActivity.this, MeetingActivity.class)
+                                .putExtra(MeetingActivity.DEBUG_ADDR, Objects.requireNonNull(debugAddrEt.getText()).toString())
+                                .putExtra(MeetingActivity.DEBUG_SWITCH, debugCheckBox.isChecked())
+                                .putExtra(MeetingActivity.MULTI, multiBox.isChecked())
+                                .putExtra(MeetingActivity.AGC, Objects.requireNonNull(agcEt.getText()).toString())
+                                .putExtra(MeetingActivity.AEC, Objects.requireNonNull(aecEt.getText()).toString())
+                                .putExtra(MeetingActivity.FPS, Objects.requireNonNull(fpsEt.getText()).toString())
+                                .putExtra(MeetingActivity.SAMPLE_RATE, Integer.valueOf(Objects.requireNonNull(sampleRateEt.getText()).toString()))
+                                .putExtra(MeetingActivity.CLOSE_OTHER_VIDEO, closeOtherVideoBox.isChecked())
+                                .putExtra(MeetingActivity.CLOSE_OTHER_AUDIO, closeOtherAudioBox.isChecked())
+                                .putExtra(MeetingActivity.CLOSE_SELF_VIDEO, closeSelfVideoBox.isChecked())
+                                .putExtra(MeetingActivity.CLOSE_SELF_AUDIO, closeSelfAudioBox.isChecked())
+                                .putExtra(MeetingActivity.HARD_DECODER, hardDecoderBox.isChecked())
+                                .putExtra(MeetingActivity.VIDEO_LEVEL, level)
 
-            @Override
-            protected void onComplete(boolean success) {
+                                .putExtra(MeetingActivity.ROOM_INFO, data.getData())
+                        );
+                    }
 
-            }
-        });
+                    @Override
+                    protected void onComplete(boolean success) {
 
-//        VcsServer.getInstance().inviteAcc("915105013005", "16158f0a1feb49edb7d9872a92f6546d");
+                    }
+                });
+                break;
+            case R.id.callBtn:
+                startActivity(new Intent(this, CallTestActivity.class));
+                break;
+        }
+
+        //初始化
+        //发送邀请通知
+//        VcsServer.getInstance().inviteAcc("915105013005", "9bb38794308e4949b6f8a40cd0de80b2");
+        //回复邀请确认通知-接收
+//        VcsServer.getInstance().inviteConfirm("邀请人accountId", "邀请的房间号", Models.InviteResponse.IR_Accepted);
+        //回复邀请确认通知-拒绝
+//        VcsServer.getInstance().inviteConfirm("邀请人accountId", "邀请的房间号", Models.InviteResponse.IR_Rejected);
     }
 }

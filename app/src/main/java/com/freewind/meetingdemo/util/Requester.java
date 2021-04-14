@@ -7,6 +7,10 @@
 // ///////////////////////////////////////////////////////////////////////////
 package com.freewind.meetingdemo.util;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.provider.Settings;
+import android.telephony.TelephonyManager;
 
 import com.freewind.meetingdemo.base.BaseBean;
 import com.freewind.meetingdemo.bean.RoomInfoBean;
@@ -15,6 +19,9 @@ import com.freewind.meetingdemo.common.Constants;
 import com.freewind.meetingdemo.http.HttpCallBack;
 import com.freewind.meetingdemo.http.HttpHelper;
 import com.loopj.android.http.RequestParams;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * api接口定义
@@ -27,14 +34,34 @@ public class Requester {
      * @param room_no  会议室创建后获取的id
      * @param password 视频会议密码(如果会议启用密码)
      */
-    public static void enterMeeting(String room_no, String password, final HttpCallBack<RoomInfoBean> callBack) {
+    public static void enterMeeting(Context context, String room_no, String password, final HttpCallBack<RoomInfoBean> callBack) {
         String url = Constants.API_HOST + "room/enter";
         RequestParams params = new RequestParams();
+        List<String> paramsList = new ArrayList<>();
+
         params.put("room_no", room_no);
+        paramsList.add("room_no="+room_no);
+
         if (!password.isEmpty()) {
             params.put("password", password);
+            paramsList.add("password="+password);
         }
-        HttpHelper.executePost(RoomInfoBean.class, url, params, callBack);
+        params.put("device_id", getDeviceID(context));
+
+        paramsList.add("device_id="+getDeviceID(context));
+
+
+        HttpHelper.executePost(RoomInfoBean.class, url, params, paramsList, callBack);
+    }
+
+    @SuppressLint({"NewApi", "MissingPermission"})
+    private static String getDeviceID(Context context){
+        try {
+            TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            return tm.getDeviceId();
+        } catch (Exception e){
+            return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        }
     }
 
     /**
@@ -48,14 +75,17 @@ public class Requester {
         String url = Constants.API_HOST + "account/login";
         RequestParams params = new RequestParams();
 
-//        params.put("loginname", "3eccdf4f7d00211594df54216386c150");
-//        params.put("password", "3bc2ee0ecaf5dee6df73447892146e61");
-
-
         params.put("loginname", mobile);
         params.put("password", PwdUtil.hmacSha1(mobile + password));
         params.put("dev_type", 2);
-        HttpHelper.executePost(UserInfoBean.class, url, params, callBack);
+
+
+        List<String> paramsList = new ArrayList<>();
+        paramsList.add("loginname="+mobile);
+        paramsList.add("password="+PwdUtil.hmacSha1(mobile + password));
+        paramsList.add("dev_type="+2);
+
+        HttpHelper.executePost(UserInfoBean.class, url, params, paramsList, callBack);
     }
 
     /**
@@ -67,10 +97,17 @@ public class Requester {
         RequestParams params = new RequestParams();
         params.put("used_for", user_for);
         params.put("mobile", mobile);
+
+        List<String> paramsList = new ArrayList<>();
+        paramsList.add("used_for="+user_for);
+        paramsList.add("mobile="+mobile);
+
         if (user_for == 2){  // 重置密码
             params.put("account_name", mobile);
+            paramsList.add("account_name="+mobile);
         }
-        HttpHelper.executePost(BaseBean.class, url, params, callBack);
+
+        HttpHelper.executePost(BaseBean.class, url, params, paramsList, callBack);
     }
 
     /**
@@ -85,7 +122,16 @@ public class Requester {
         params.put("mobile", mobile);
         params.put("type", 1);
         params.put("vcode", code);
-        HttpHelper.executePost(UserInfoBean.class, url, params, callBack);
+
+        List<String> paramsList = new ArrayList<>();
+        paramsList.add("name="+mobile);
+        paramsList.add("nickname="+mobile);
+        paramsList.add("password="+PwdUtil.hmacSha1(mobile + password));
+        paramsList.add("mobile="+mobile);
+        paramsList.add("type="+1);
+        paramsList.add("vcode="+code);
+
+        HttpHelper.executePost(UserInfoBean.class, url, params, paramsList, callBack);
     }
 
     /**
@@ -97,7 +143,13 @@ public class Requester {
         params.put("name", mobile);
         params.put("vcode", code);
         params.put("new_password", PwdUtil.hmacSha1(mobile + password));
-        HttpHelper.executePost(BaseBean.class, url, params, callBack);
+
+        List<String> paramsList = new ArrayList<>();
+        paramsList.add("name="+mobile);
+        paramsList.add("vcode="+code);
+        paramsList.add("new_password="+PwdUtil.hmacSha1(mobile + password));
+
+        HttpHelper.executePost(BaseBean.class, url, params, paramsList, callBack);
     }
 }
 

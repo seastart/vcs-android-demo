@@ -25,6 +25,8 @@ import com.freewind.meetingdemo.activity.MeetingActivity;
 import com.freewind.meetingdemo.bean.MemberBean;
 import com.freewind.meetingdemo.util.DisplayUtil;
 import com.freewind.vcs.Models;
+import com.ook.android.VCS_EVENT_TYPE;
+import com.ook.android.ikPlayer.VcsPlayerGlSurfaceView;
 import com.ook.android.ikPlayer.VcsPlayerGlTextureView;
 
 import java.util.ArrayList;
@@ -38,6 +40,13 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
 
     public HashMap<Integer, MyViewHolder> getHolders() {
         return holders == null ? new HashMap<>() : holders;
+    }
+
+    public MyViewHolder getHolder(Integer integer){
+        MyViewHolder myViewHolder = null;
+
+
+        return myViewHolder;
     }
 
     public List<MemberBean> getMemberList() {
@@ -109,8 +118,6 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         final MemberBean memberBean = memberList.get(position);
         holder.nameTv.setText(memberBean.getSdkNo() + "");
 
-        ((MeetingActivity)context).setVcsPlayerScale(holder.textureView, memberBean);
-
         if (memberBean.isCloseOtherVideo()){
 //            holder.otherCloseTv.setVisibility(View.VISIBLE);
             holder.closeVideoBtn.setText("打开视频");
@@ -179,15 +186,18 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
                 memberBean.getMute() == Models.DeviceState.DS_Active ? Models.DeviceState.DS_Disabled : Models.DeviceState.DS_Active));
 
         holder.btn1.setOnClickListener(view -> {
+//            ((MeetingActivity)context).setH264(memberBean.getSdkNo(), 1);//track0
             ((MeetingActivity)context).useChannel(memberBean.getSdkNo(), 1);//track0
         });
 
         holder.btn2.setOnClickListener(view -> {
+//            ((MeetingActivity)context).setH264(memberBean.getSdkNo(), 2);//track0
             ((MeetingActivity)context).useChannel(memberBean.getSdkNo(), 2);//track1
         });
 
         holder.btn3.setOnClickListener(view -> {
-            ((MeetingActivity)context).useChannel(memberBean.getSdkNo(), 4);//track2
+//            ((MeetingActivity)context).setH264(memberBean.getSdkNo(), 4);//track2
+            ((MeetingActivity)context).useChannel(memberBean.getSdkNo(), 4);//track3
         });
 
         holder.btn4.setOnClickListener(view -> {
@@ -204,7 +214,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        public VcsPlayerGlTextureView textureView;
+        public VcsPlayerGlSurfaceView textureView;
         public TextView nameTv;
         ImageView selfMuteIv, otherMuteIv;
         public TextView selfCloseTv, otherCloseTv;
@@ -216,6 +226,10 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
 //            setIsRecyclable(false);
 
             textureView = convertView.findViewById(R.id.gl_view);
+
+//            textureView.setViewScaleType(VCS_EVENT_TYPE.CENTERCROP);
+            textureView.setZOrderOnTop(true);
+            textureView.setZOrderMediaOverlay(true);
 
             frameLayout = convertView.findViewById(R.id.fl_view);
 

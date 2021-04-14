@@ -37,7 +37,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="#000"
-        android:text="http://180.97.182.244:5000"/>
+        android:text="http://vcs.anyconf.cn:5000"/>
 
     <TextView
         android:id="@+id/tvezm"
@@ -46,5 +46,18 @@
         android:layout_height="wrap_content"
         android:textColor="#000"
         android:text="http://ezm.ys7.com"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="15dp">
+
+        <TextView
+            android:id="@+id/encoder_tv"
+            android:textColor="#000"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </ScrollView>
 
 </LinearLayout>
