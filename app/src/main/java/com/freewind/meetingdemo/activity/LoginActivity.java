@@ -12,7 +12,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.freewind.meetingdemo.MyApplication;
 import com.freewind.meetingdemo.R;
 import com.freewind.meetingdemo.bean.RoomInfoBean;
+import com.freewind.meetingdemo.bean.UserBean;
 import com.freewind.meetingdemo.bean.UserInfoBean;
+import com.freewind.meetingdemo.common.Constants;
 import com.freewind.meetingdemo.common.UserConfig;
 import com.freewind.meetingdemo.http.HttpCallBack;
 import com.freewind.meetingdemo.util.Requester;
@@ -41,11 +43,8 @@ public class LoginActivity extends AppCompatActivity {
         accountEt.setText(UserConfig.getSpAdmin());
         pwdEt.setText(UserConfig.getSpPassword());
 
-
-        loginBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Requester.login(accountEt.getText().toString(), pwdEt.getText().toString(),  new HttpCallBack<UserInfoBean>() {
+        loginBtn.setOnClickListener(view ->
+                Requester.login(accountEt.getText().toString(), pwdEt.getText().toString(), new HttpCallBack<UserInfoBean>() {
                     @Override
                     public void onSucceed(UserInfoBean data) {
                         UserConfig.setSpAdmin(accountEt.getText().toString());
@@ -54,97 +53,26 @@ public class LoginActivity extends AppCompatActivity {
                         UserConfig.updateUserInfo(data);
                         UserConfig.setRequestToken(data.getData().getToken());
 
+                        VcsServer.getInstance().stop();
+                        //设置呼叫相关回调
+                        setMsgListener();
+
+                        UserBean userBean = data.getData().getAccount();
+                        VcsServer.getInstance().setUserInfo(userBean.getId(), userBean.getName(), userBean.getNickname(), userBean.getPortrait());
+
                         VcsServer.getInstance().start(data.getData().getAccount().getId(),
                                 data.getData().getToken(),
-                                data.getData().getReg().getPort(),
-                                data.getData().getReg().getAddr());
+                                data.getData().getReg().getMqtt_port(),
+                                data.getData().getReg().getMqtt_address(),
+                                data.getData().getReg().getServer_id());
 
-                        //设置呼叫相关回调
-                        VcsServer.getInstance().setVcsMsgListener(new VcsServer.VcsMsgListener() {
-                            @Override
-                            public void inviteNotification(String accountId, String accountName, String targetId, String roomNo, String roomName, String roomPwd) {
-                                Log.e("222222222", "inviteConfirmNotification===roomNo:" + roomNo + "   accId:" + accountId + "   targetId:" + targetId);
-
-                                //接收到邀请通知
-                                if (MyApplication.isMeeting){
-                                    //如果正在会议中，则回复拒绝
-                                    VcsServer.getInstance().inviteConfirm(accountId, roomNo, Models.InviteResponse.IR_Rejected);
-                                }else {
-                                    startActivity(new Intent(getApplicationContext(), DialogActivity.class)
-                                            .putExtra("accountName", accountName)
-                                            .putExtra("accountId", accountId)
-                                            .putExtra("roomPwd", roomPwd)
-                                            .putExtra("roomNo", roomNo)
-                                            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-                                }
-                            }
-
-                            @Override
-                            public void inviteConfirmNotification(String roomNo, String accId, Models.InviteResponse response) {
-                                //邀请确认通知
-                                Log.e("222222222", "inviteConfirmNotification===roomNo:" + roomNo + "   accId:" + accId + "   response:" + response);
-                                if (response == Models.InviteResponse.IR_Accepted){//对方接受了邀请
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Requester.enterMeeting(getApplicationContext(), roomNo, "", new HttpCallBack<RoomInfoBean>() {
-                                                @Override
-                                                public void onSucceed(RoomInfoBean data) {
-                                                    startActivity(new Intent(getApplicationContext(), MeetingActivity.class)
-                                                            .putExtra(MeetingActivity.DEBUG_ADDR, "")
-                                                            .putExtra(MeetingActivity.DEBUG_SWITCH, false)
-                                                            .putExtra(MeetingActivity.MULTI, true)
-                                                            .putExtra(MeetingActivity.AGC, "10000")
-                                                            .putExtra(MeetingActivity.AEC, "12")
-                                                            .putExtra(MeetingActivity.FPS, "20")
-                                                            .putExtra(MeetingActivity.SAMPLE_RATE, 48000)
-                                                            .putExtra(MeetingActivity.CLOSE_OTHER_VIDEO, false)
-                                                            .putExtra(MeetingActivity.CLOSE_OTHER_AUDIO, false)
-                                                            .putExtra(MeetingActivity.CLOSE_SELF_VIDEO, false)
-                                                            .putExtra(MeetingActivity.CLOSE_SELF_AUDIO, false)
-                                                            .putExtra(MeetingActivity.HARD_DECODER, true)
-                                                            .putExtra(MeetingActivity.VIDEO_LEVEL, 0)
-                                                            .putExtra(MeetingActivity.ROOM_INFO, data.getData())
-                                                    );
-                                                }
-
-                                                @Override
-                                                protected void onComplete(boolean success) {
-
-                                                }
-                                            });
-                                        }
-                                    });
-                                }else {//对方拒绝了邀请
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            ToastUtil.getInstance().showLongToast("对方拒绝了您的邀请");
-                                        }
-                                    });
-                                }
-                            }
-
-                            @Override
-                            public void waitingBroadcast(Register.WaitingAccount waitingAccount) {
-
-                            }
-
-                            @Override
-                            public void waitingUpdate(Register.WaitingAccount waitingAccount) {
-
-                            }
-                        });
-
-                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                        startActivityForResult(new Intent(LoginActivity.this, MainActivity.class), 10);
                     }
 
                     @Override
                     protected void onComplete(boolean success) {
                     }
-                });
-            }
-        });
+                }));
 
         registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -168,9 +96,98 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    private void setMsgListener(){
+        //设置呼叫相关回调
+        VcsServer.getInstance().setVcsMsgListener(new VcsServer.VcsMsgListener() {
+            @Override
+            public void inviteNotification(String accountId, String portrait, String accountName, String targetId, String roomNo, String roomName, String roomPwd) {
+                Log.e("222222222", "inviteConfirmNotification===roomNo:" + roomNo + "   accId:" + accountId + "   targetId:" + targetId);
+
+                //接收到邀请通知
+                if (MyApplication.isMeeting) {
+                    //如果正在会议中，则回复拒绝
+                    VcsServer.getInstance().inviteConfirm(accountId, roomNo, Models.InviteResponse.IR_Rejected);
+                } else {
+                    startActivity(new Intent(getApplicationContext(), DialogActivity.class)
+                            .putExtra("accountName", accountName)
+                            .putExtra("accountId", accountId)
+                            .putExtra("roomPwd", roomPwd)
+                            .putExtra("roomNo", roomNo)
+                            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                }
+            }
+
+            @Override
+            public void inviteConfirmNotification(String roomNo, String accId, Models.InviteResponse response) {
+                //邀请确认通知
+                Log.e("222222222", "inviteConfirmNotification===roomNo:" + roomNo + "   accId:" + accId + "   response:" + response);
+                if (response == Models.InviteResponse.IR_Accepted) {//对方接受了邀请
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Requester.enterMeeting(getApplicationContext(), roomNo, "", "", new HttpCallBack<RoomInfoBean>() {
+                                @Override
+                                public void onSucceed(RoomInfoBean data) {
+                                    startActivity(new Intent(getApplicationContext(), Constants.class)
+                                            .putExtra(Constants.DEBUG_ADDR, "")
+                                            .putExtra(Constants.DEBUG_SWITCH, false)
+                                            .putExtra(Constants.MULTI, true)
+                                            .putExtra(Constants.AGC, "10000")
+                                            .putExtra(Constants.AEC, "12")
+                                            .putExtra(Constants.FPS, "20")
+                                            .putExtra(Constants.SAMPLE_RATE, 48000)
+                                            .putExtra(Constants.CLOSE_OTHER_VIDEO, false)
+                                            .putExtra(Constants.CLOSE_OTHER_AUDIO, false)
+                                            .putExtra(Constants.CLOSE_SELF_VIDEO, false)
+                                            .putExtra(Constants.CLOSE_SELF_AUDIO, false)
+                                            .putExtra(Constants.HARD_DECODER, true)
+                                            .putExtra(Constants.VIDEO_LEVEL, 1)
+                                            .putExtra(Constants.ROOM_INFO, data.getData())
+                                    );
+                                }
+
+                                @Override
+                                protected void onComplete(boolean success) {
+
+                                }
+                            });
+                        }
+                    });
+                } else {//对方拒绝了邀请
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ToastUtil.getInstance().showLongToast("对方拒绝了您的邀请");
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void waitingBroadcast(Register.WaitingAccount waitingAccount) {
+
+                waitingAccount.toBuilder().setName("111111").build();
+
+                Log.e("22222222", "waitingBroadcast   " + waitingAccount.getId() + "   " + waitingAccount.getStatus());
+            }
+
+            @Override
+            public void waitingUpdate(Register.WaitingAccount waitingAccount) {
+                Log.e("22222222", "waitingUpdate   " + waitingAccount.getId() + "   " + waitingAccount.getStatus());
+            }
+
+            @Override
+            public void meetingBegin(Register.MeetingBeginNotify meetingBeginNotify) {
+
+            }
+        });
+    }
+
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        VcsServer.getInstance().stop();
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            VcsServer.getInstance().stop();
+        }
     }
 }

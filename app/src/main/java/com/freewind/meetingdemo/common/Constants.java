@@ -7,6 +7,22 @@
 package com.freewind.meetingdemo.common;
 
 public class Constants {
+    public static final String DEBUG_ADDR = "debug_addr";
+    public static final String DEBUG_SWITCH = "debug_switch";
+    public static final String MULTI = "multi";
+    public static final String AGC = "agc";
+    public static final String AEC = "aec";
+    public static final String FPS = "fps";
+    public static final String CLOSE_SELF_VIDEO = "close_self_video";
+    public static final String CLOSE_SELF_AUDIO = "close_self_audio";
+    public static final String CLOSE_OTHER_AUDIO = "close_other_audio";
+    public static final String CLOSE_OTHER_VIDEO = "close_other_video";
+    public static final String SAMPLE_RATE = "sample_rate";
+    public static final String HARD_DECODER = "hard_decoder";
+    public static final String ROOM_INFO = "room_info";
+    public static final String VIDEO_LEVEL = "video_level";
+
+
     public static final int CLOSE_VIDEO_OR_AUDIO = 1;//关闭视频/音频，不发送频/音频
     public static final int SEND_VIDEO_OR_AUDIO = 0;//打开视频/音频，发送视频/音频
 

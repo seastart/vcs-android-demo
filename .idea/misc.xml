@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="JDK" project-jdk-type="JavaSDK" />
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/WorkSpace/Android/MeetingDemo/app/src/main/res/layout/activity_call_test.xml" value="0.2296875" />
+        <entry key="..\:/WorkSpace/Android/MeetingDemo/app/src/main/res/layout/activity_login.xml" value="0.2296875" />
+        <entry key="..\:/WorkSpace/Android/MeetingDemo/app/src/main/res/layout/activity_main.xml" value="0.2296875" />
+        <entry key="..\:/WorkSpace/Android/MeetingDemo/app/src/main/res/layout/activity_meeting.xml" value="0.1" />
+        <entry key="..\:/WorkSpace/Android/MeetingDemo/app/src/main/res/layout/activity_meeting_custom.xml" value="0.2296875" />
+        <entry key="..\:/WorkSpace/Android/MeetingDemo/app/src/main/res/layout/activity_register.xml" value="0.2296875" />
+        <entry key="..\:/WorkSpace/Android/MeetingDemo/app/src/main/res/layout/activity_set.xml" value="0.10364583333333334" />
+        <entry key="..\:/WorkSpace/Android/MeetingDemo/app/src/main/res/layout/activity_udp_client.xml" value="0.2296875" />
+        <entry key="..\:/WorkSpace/Android/MeetingDemo/app/src/main/res/layout/item_window.xml" value="0.2296875" />
+        <entry key="..\:/WorkSpace/Android/MeetingDemo/app/src/main/res/layout/item_window_custom.xml" value="0.2296875" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK" />
 </project>

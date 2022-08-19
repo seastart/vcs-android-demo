@@ -1,13 +1,12 @@
 package com.freewind.meetingdemo.activity;
 
 import android.content.Intent;
-import android.os.Handler;
 import android.os.Bundle;
+import android.os.Handler;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.freewind.meetingdemo.R;
-import com.freewind.meetingdemo.common.UserConfig;
 
 public class WelcomeActivity extends AppCompatActivity {
 

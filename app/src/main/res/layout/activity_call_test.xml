@@ -56,4 +56,25 @@
         android:layout_height="wrap_content"
         android:text="发送邀请通知"/>
 
+    <Button
+        android:id="@+id/sendMsgBtn"
+        android:layout_marginTop="5dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送聊天消息“你好”"/>
+
+    <Button
+        android:id="@+id/callBtn"
+        android:layout_marginTop="5dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送呼叫邀请"/>
+
+    <Button
+        android:id="@+id/updateBtn"
+        android:layout_marginTop="5dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="更新呼叫用户信息"/>
+
 </LinearLayout>

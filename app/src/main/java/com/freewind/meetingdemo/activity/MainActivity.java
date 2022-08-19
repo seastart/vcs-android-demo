@@ -1,14 +1,8 @@
 package com.freewind.meetingdemo.activity;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.RadioButton;
@@ -17,22 +11,16 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatEditText;
 
-import com.freewind.meetingdemo.MyApplication;
 import com.freewind.meetingdemo.R;
 import com.freewind.meetingdemo.bean.RoomInfoBean;
 import com.freewind.meetingdemo.common.Constants;
-import com.freewind.meetingdemo.common.UserConfig;
 import com.freewind.meetingdemo.http.HttpCallBack;
+import com.freewind.meetingdemo.util.IpUtil;
 import com.freewind.meetingdemo.util.Requester;
 import com.freewind.meetingdemo.util.ToastUtil;
-import com.freewind.vcs.Models;
+import com.freewind.vcs.Register;
 import com.freewind.vcs.VcsServer;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
 import java.util.Objects;
 
 import butterknife.BindView;
@@ -82,118 +70,79 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-
-        ipTv.setText("ip地址：" + getIpAddress(MyApplication.getContext()));
+        ipTv.setText("ip地址：" + IpUtil.getInstance().getIpAddress(this));
     }
 
-    public String getIpAddress(Context context) {
-        NetworkInfo info = ((ConnectivityManager) context
-                .getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
-        if (info != null && info.isConnected()) {
-            // 3/4g网络
-            if (info.getType() == ConnectivityManager.TYPE_MOBILE) {
-                try {
-                    for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
-                        NetworkInterface intf = en.nextElement();
-                        for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
-                            InetAddress inetAddress = enumIpAddr.nextElement();
-                            if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
-                                return inetAddress.getHostAddress();
-                            }
-                        }
-                    }
-                } catch (SocketException e) {
-                    e.printStackTrace();
+    private void enter(Class<?> cls){
+        Requester.enterMeeting(this, Objects.requireNonNull(roomNumberEt.getText()).toString(), "", "", new HttpCallBack<RoomInfoBean>() {
+            @Override
+            public void onSucceed(RoomInfoBean data) {
+                if (data.getCode() == Constants.NEED_PWD) {
+                    ToastUtil.getInstance().showLongToast("该会议室需要密码");
+                    return;
                 }
 
-            } else if (info.getType() == ConnectivityManager.TYPE_WIFI) {
-                //  wifi网络
-                WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-                return intIP2StringIP(wifiInfo.getIpAddress());
-            } else if (info.getType() == ConnectivityManager.TYPE_ETHERNET) {
-                // 有限网络
-                return getLocalIp();
-            }
-        }
-        return null;
-    }
-
-    private String intIP2StringIP(int ip) {
-        return (ip & 0xFF) + "." +
-                ((ip >> 8) & 0xFF) + "." +
-                ((ip >> 16) & 0xFF) + "." +
-                (ip >> 24 & 0xFF);
-    }
-
-    // 获取有限网IP
-    private String getLocalIp() {
-        try {
-            for (Enumeration<NetworkInterface> en = NetworkInterface
-                    .getNetworkInterfaces(); en.hasMoreElements(); ) {
-                NetworkInterface intf = en.nextElement();
-                for (Enumeration<InetAddress> enumIpAddr = intf
-                        .getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
-                    InetAddress inetAddress = enumIpAddr.nextElement();
-                    if (!inetAddress.isLoopbackAddress()
-                            && inetAddress instanceof Inet4Address) {
-                        return inetAddress.getHostAddress();
-                    }
+                int level;
+                if (video720Box.isChecked()) {
+                    level = 1;
+                } else {
+                    level = 0;
                 }
-            }
-        } catch (SocketException ignored) {
 
-        }
-        return "0.0.0.0";
+                startActivity(new Intent(MainActivity.this, cls)
+                        .putExtra(Constants.DEBUG_ADDR, Objects.requireNonNull(debugAddrEt.getText()).toString())
+                        .putExtra(Constants.DEBUG_SWITCH, debugCheckBox.isChecked())
+                        .putExtra(Constants.MULTI, multiBox.isChecked())
+                        .putExtra(Constants.AGC, Objects.requireNonNull(agcEt.getText()).toString())
+                        .putExtra(Constants.AEC, Objects.requireNonNull(aecEt.getText()).toString())
+                        .putExtra(Constants.FPS, Objects.requireNonNull(fpsEt.getText()).toString())
+                        .putExtra(Constants.SAMPLE_RATE, Integer.valueOf(Objects.requireNonNull(sampleRateEt.getText()).toString()))
+                        .putExtra(Constants.CLOSE_OTHER_VIDEO, closeOtherVideoBox.isChecked())
+                        .putExtra(Constants.CLOSE_OTHER_AUDIO, closeOtherAudioBox.isChecked())
+                        .putExtra(Constants.CLOSE_SELF_VIDEO, closeSelfVideoBox.isChecked())
+                        .putExtra(Constants.CLOSE_SELF_AUDIO, closeSelfAudioBox.isChecked())
+                        .putExtra(Constants.HARD_DECODER, hardDecoderBox.isChecked())
+                        .putExtra(Constants.VIDEO_LEVEL, level)
+
+                        .putExtra(Constants.ROOM_INFO, data.getData())
+                );
+            }
+
+            @Override
+            protected void onComplete(boolean success) {
+
+            }
+        });
     }
 
-
-    @OnClick({R.id.start_btn, R.id.callBtn})
+    @OnClick({R.id.start_btn, R.id.callBtn, R.id.ip_addr_tv})
     public void onClick(View view) {
-        switch (view.getId()){
+        switch (view.getId()) {
             case R.id.start_btn:
-                Requester.enterMeeting(this, Objects.requireNonNull(roomNumberEt.getText()).toString(), "", new HttpCallBack<RoomInfoBean>() {
-                    @Override
-                    public void onSucceed(RoomInfoBean data) {
-                        if (data.getCode() == Constants.NEED_PWD) {
-                            ToastUtil.getInstance().showLongToast("该会议室需要密码");
-                            return;
-                        }
-
-                        int level;
-                        if (video720Box.isChecked()) {
-                            level = 1;
-                        } else {
-                            level = 0;
-                        }
-
-                        startActivity(new Intent(MainActivity.this, MeetingActivity.class)
-                                .putExtra(MeetingActivity.DEBUG_ADDR, Objects.requireNonNull(debugAddrEt.getText()).toString())
-                                .putExtra(MeetingActivity.DEBUG_SWITCH, debugCheckBox.isChecked())
-                                .putExtra(MeetingActivity.MULTI, multiBox.isChecked())
-                                .putExtra(MeetingActivity.AGC, Objects.requireNonNull(agcEt.getText()).toString())
-                                .putExtra(MeetingActivity.AEC, Objects.requireNonNull(aecEt.getText()).toString())
-                                .putExtra(MeetingActivity.FPS, Objects.requireNonNull(fpsEt.getText()).toString())
-                                .putExtra(MeetingActivity.SAMPLE_RATE, Integer.valueOf(Objects.requireNonNull(sampleRateEt.getText()).toString()))
-                                .putExtra(MeetingActivity.CLOSE_OTHER_VIDEO, closeOtherVideoBox.isChecked())
-                                .putExtra(MeetingActivity.CLOSE_OTHER_AUDIO, closeOtherAudioBox.isChecked())
-                                .putExtra(MeetingActivity.CLOSE_SELF_VIDEO, closeSelfVideoBox.isChecked())
-                                .putExtra(MeetingActivity.CLOSE_SELF_AUDIO, closeSelfAudioBox.isChecked())
-                                .putExtra(MeetingActivity.HARD_DECODER, hardDecoderBox.isChecked())
-                                .putExtra(MeetingActivity.VIDEO_LEVEL, level)
-
-                                .putExtra(MeetingActivity.ROOM_INFO, data.getData())
-                        );
-                    }
-
-                    @Override
-                    protected void onComplete(boolean success) {
-
-                    }
-                });
+                enter(MeetingActivity.class);
                 break;
             case R.id.callBtn:
                 startActivity(new Intent(this, CallTestActivity.class));
+                break;
+            case R.id.ip_addr_tv:
+                Register.WaitingAccount.Builder builder = Register.WaitingAccount.newBuilder();
+                builder.setId("5c3500d3826946a38bc9804daa03bbbb");
+                builder.setRoomNo("915105013005");
+                builder.setName("22222");
+                builder.setNickname("222223333");
+                builder.setStatus(Register.InviteStatus.Waiting);
+
+                VcsServer.getInstance().call("915105013005", false, builder.build());
+//                Uri uri = Uri.parse("ezmconf://info?mobile=15105013001&pwd=123456&no=41849892&video=true&audio=true");
+//                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+//                startActivity(intent);
+//                VcsServer.getInstance().accountStatusUpdate(Register.WaitingAccount.newBuilder()
+//                        .setId(UserConfig.getUserInfo().getData().getAccount().getId())
+//                        .setName(UserConfig.getUserInfo().getData().getAccount().getName())
+//                        .setNickname(UserConfig.getUserInfo().getData().getAccount().getNickname())
+//                        .setRoomNo("915105013005")
+//                        .setStatus(Register.InviteStatus.Waiting)
+//                        .build());
                 break;
         }
 
@@ -205,4 +154,11 @@ public class MainActivity extends AppCompatActivity {
         //回复邀请确认通知-拒绝
 //        VcsServer.getInstance().inviteConfirm("邀请人accountId", "邀请的房间号", Models.InviteResponse.IR_Rejected);
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        setResult(RESULT_OK);
+    }
+
 }

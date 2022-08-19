@@ -19,26 +19,9 @@ public class MemberBean implements Serializable {
     private Models.DeviceState closeVideo;
     private boolean closeOtherVideo;//本地是否关闭视频
     private boolean closeOtherAudio;//本地是否关闭音频
-    private int x;
-    private int y;
     private int sdkNo;
     private String accountId;
 
-    public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
-    }
 
     public boolean isCloseOtherAudio() {
         return closeOtherAudio;

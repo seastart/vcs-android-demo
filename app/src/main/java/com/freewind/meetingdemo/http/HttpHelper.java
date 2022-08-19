@@ -32,8 +32,8 @@ public class HttpHelper {
      * APPKEY:   4f7e524b73b84aa48f8ab27f0255df63
      */
 
-    public static final String APP_ID = "8847d560e2764adbb479c83dcc5135c9";
-    public static final String APP_KEY = "4f7e524b73b84aa48f8ab27f0255df63";
+    public static final String APP_ID = "0a16828823ce41c5ad040be3ed384c14";
+    public static final String APP_KEY = "a67c660b29234e2891cc6627fc6401ce";
 
 
     private static AsyncHttpClient getAsyncInstance(){

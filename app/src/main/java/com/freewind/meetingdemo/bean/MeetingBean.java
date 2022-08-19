@@ -9,8 +9,6 @@ import java.io.Serializable;
  * created at 2018/5/15 10:37
  */
 public class MeetingBean extends BaseBean {
-    private String id;
-    private String room_id;
     private UserBean account;
     private RoomBean room;
     private String session;
@@ -21,6 +19,24 @@ public class MeetingBean extends BaseBean {
     private int stream_port;
     private String sdk_no;
     private String wb_host;
+    private String meeting_server_id;
+    private String upload_id;
+
+    public String getUpload_id() {
+        return upload_id;
+    }
+
+    public void setUpload_id(String upload_id) {
+        this.upload_id = upload_id;
+    }
+
+    public String getMeeting_server_id() {
+        return meeting_server_id;
+    }
+
+    public void setMeeting_server_id(String meeting_server_id) {
+        this.meeting_server_id = meeting_server_id;
+    }
 
     public String getWb_host() {
         return wb_host;
@@ -84,22 +100,6 @@ public class MeetingBean extends BaseBean {
 
     public void setSession(String session) {
         this.session = session;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getRoom_id() {
-        return room_id;
-    }
-
-    public void setRoom_id(String room_id) {
-        this.room_id = room_id;
     }
 
     public UserBean getAccount() {

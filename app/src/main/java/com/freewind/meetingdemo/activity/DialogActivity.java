@@ -8,6 +8,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.freewind.meetingdemo.R;
 import com.freewind.meetingdemo.bean.RoomInfoBean;
+import com.freewind.meetingdemo.common.Constants;
 import com.freewind.meetingdemo.http.HttpCallBack;
 import com.freewind.meetingdemo.util.DialogUtils;
 import com.freewind.meetingdemo.util.Requester;
@@ -30,24 +31,24 @@ public class DialogActivity extends FragmentActivity {
             @Override
             public void onConfirm() {
                 VcsServer.getInstance().inviteConfirm(accountId, roomNo, Models.InviteResponse.IR_Accepted);
-                Requester.enterMeeting(DialogActivity.this, roomNo, roomPwd, new HttpCallBack<RoomInfoBean>() {
+                Requester.enterMeeting(DialogActivity.this, roomNo, roomPwd, "", new HttpCallBack<RoomInfoBean>() {
                     @Override
                     public void onSucceed(RoomInfoBean data) {
-                        startActivity(new Intent(DialogActivity.this, MeetingActivity.class)
-                                .putExtra(MeetingActivity.DEBUG_ADDR, "")
-                                .putExtra(MeetingActivity.DEBUG_SWITCH, false)
-                                .putExtra(MeetingActivity.MULTI, true)
-                                .putExtra(MeetingActivity.AGC, "10000")
-                                .putExtra(MeetingActivity.AEC, "12")
-                                .putExtra(MeetingActivity.FPS, "20")
-                                .putExtra(MeetingActivity.SAMPLE_RATE, 48000)
-                                .putExtra(MeetingActivity.CLOSE_OTHER_VIDEO, false)
-                                .putExtra(MeetingActivity.CLOSE_OTHER_AUDIO, false)
-                                .putExtra(MeetingActivity.CLOSE_SELF_VIDEO, false)
-                                .putExtra(MeetingActivity.CLOSE_SELF_AUDIO, false)
-                                .putExtra(MeetingActivity.HARD_DECODER, true)
-                                .putExtra(MeetingActivity.VIDEO_LEVEL, 0)
-                                .putExtra(MeetingActivity.ROOM_INFO, data.getData())
+                        startActivity(new Intent(DialogActivity.this, Constants.class)
+                                .putExtra(Constants.DEBUG_ADDR, "")
+                                .putExtra(Constants.DEBUG_SWITCH, false)
+                                .putExtra(Constants.MULTI, true)
+                                .putExtra(Constants.AGC, "10000")
+                                .putExtra(Constants.AEC, "12")
+                                .putExtra(Constants.FPS, "20")
+                                .putExtra(Constants.SAMPLE_RATE, 48000)
+                                .putExtra(Constants.CLOSE_OTHER_VIDEO, false)
+                                .putExtra(Constants.CLOSE_OTHER_AUDIO, false)
+                                .putExtra(Constants.CLOSE_SELF_VIDEO, false)
+                                .putExtra(Constants.CLOSE_SELF_AUDIO, false)
+                                .putExtra(Constants.HARD_DECODER, true)
+                                .putExtra(Constants.VIDEO_LEVEL, 0)
+                                .putExtra(Constants.ROOM_INFO, data.getData())
                         );
                     }
 

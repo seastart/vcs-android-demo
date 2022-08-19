@@ -1,10 +1,3 @@
-// ////////////////////////////////////////////////////////////////////////////
-//
-// Copyright (c) 2015-2017 Hangzhou Freewind Technology Co., Ltd.
-// All rights reserved.
-// http://www.seastart.cn
-//
-// ///////////////////////////////////////////////////////////////////////////
 package com.freewind.meetingdemo.util;
 
 import android.annotation.SuppressLint;
@@ -34,7 +27,7 @@ public class Requester {
      * @param room_no  会议室创建后获取的id
      * @param password 视频会议密码(如果会议启用密码)
      */
-    public static void enterMeeting(Context context, String room_no, String password, final HttpCallBack<RoomInfoBean> callBack) {
+    public static void enterMeeting(Context context, String room_no, String password, String upload_id, final HttpCallBack<RoomInfoBean> callBack) {
         String url = Constants.API_HOST + "room/enter";
         RequestParams params = new RequestParams();
         List<String> paramsList = new ArrayList<>();
@@ -46,21 +39,34 @@ public class Requester {
             params.put("password", password);
             paramsList.add("password="+password);
         }
-        params.put("device_id", getDeviceID(context));
 
+        params.put("device_id", getDeviceID(context));
         paramsList.add("device_id="+getDeviceID(context));
 
+        if (!upload_id.isEmpty()){
+            params.put("upload_id", upload_id);
+            paramsList.add("upload_id="+upload_id);
+        }
 
         HttpHelper.executePost(RoomInfoBean.class, url, params, paramsList, callBack);
     }
 
     @SuppressLint({"NewApi", "MissingPermission"})
-    private static String getDeviceID(Context context){
+    public static String getDeviceID(Context context){
         try {
             TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            return tm.getDeviceId();
+            String deviceId = tm.getDeviceId();
+            if (deviceId == null){
+                deviceId = "deviceId";
+            }
+            return deviceId;
         } catch (Exception e){
-            return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+            String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+
+            if (androidId == null){
+                androidId = "androidId";
+            }
+            return androidId;
         }
     }
 

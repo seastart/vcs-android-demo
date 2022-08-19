@@ -28,7 +28,6 @@ import javax.net.ssl.X509TrustManager;
 
 
 public class MyApplication extends Application {
-
     private static MyApplication app;
 
     public static Context getContext() {
@@ -43,7 +42,8 @@ public class MyApplication extends Application {
         UserConfig.init(this);
         Constants.API_HOST = UserConfig.getSpAddr() + Constants.API_VERSION;
         trustAllHosts();
-//        VcsServer.getInstance().init(this);
+        VcsServer.getInstance().init(this);
+        VcsServer.getInstance().enableMqttLog(true);
     }
 
     public static void trustAllHosts() {
@@ -61,7 +61,7 @@ public class MyApplication extends Application {
             public void checkServerTrusted(X509Certificate[] chain,
                                            String authType) throws CertificateException {
             }
-        } };
+        }};
 
         // Install the all-trusting trust manager
         try {
