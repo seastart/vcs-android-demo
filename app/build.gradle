@@ -58,7 +58,7 @@ dependencies {
 
     implementation 'com.shiyuan.core:vcs:1.2.0'//通用版本
 
-    implementation ('com.shiyuan.core:vcs-whiteboard:1.0.22-7'){
+    implementation ('com.shiyuan.core:vcs-whiteboard:1.0.22-9'){
         exclude group: 'com.google.protobuf', module: 'protobuf-java'
     }
 

@@ -690,7 +690,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
         roomClient.setMqttServerId(meetingBean.getMeeting_server_id(), meetingBean.getRoom().getId());
 
 
-        roomClient.setSoft3A(true);
+        roomClient.setSoft3A(true);//音频优化
 
         //测试用，保存流信息
 //        roomClient.saveDebugStream();
