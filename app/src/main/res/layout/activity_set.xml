@@ -45,7 +45,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="#000"
-        android:text="http://ezm.ys7.com"/>
+        android:text="https://ezm.ys7.com"/>
 
     <ScrollView
         android:layout_width="match_parent"

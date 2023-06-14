@@ -25,7 +25,7 @@ import com.freewind.meetingdemo.activity.MeetingActivity;
 import com.freewind.meetingdemo.bean.MemberBean;
 import com.freewind.meetingdemo.util.DisplayUtil;
 import com.freewind.vcs.Models;
-import com.ook.android.ikPlayer.VcsPlayerGlSurfaceView;
+import com.ook.android.ikPlayer.VcsPlayerGlTextureView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -131,14 +131,14 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         }
 
         if (memberBean.isCloseVideo()){
-//            holder.selfCloseTv.setVisibility(View.VISIBLE);
+            holder.selfCloseTv.setVisibility(View.VISIBLE);
             if (memberBean.getCloseVideo() == Models.DeviceState.DS_Active){
                 //被主持人关闭了视频
             }else {
                 //没被主持人关闭视频
             }
         }else {
-//            holder.selfCloseTv.setVisibility(View.GONE);
+            holder.selfCloseTv.setVisibility(View.GONE);
         }
 
         if (memberBean.getMute() == Models.DeviceState.DS_Disabled){
@@ -212,7 +212,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        public VcsPlayerGlSurfaceView textureView;
+        public VcsPlayerGlTextureView textureView;
         public TextView nameTv;
         ImageView selfMuteIv, otherMuteIv;
         public TextView selfCloseTv, otherCloseTv;

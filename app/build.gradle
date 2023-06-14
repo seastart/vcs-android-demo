@@ -56,7 +56,7 @@ dependencies {
     implementation 'com.alibaba:fastjson:1.2.48'
     implementation 'com.loopj.android:android-async-http:1.4.9'
 
-    implementation 'com.shiyuan.core:vcs:1.2.0'//通用版本
+    implementation 'com.shiyuan.core:vcs:1.2.5-39'//通用版本
 
     implementation ('com.shiyuan.core:vcs-whiteboard:1.0.22-9'){
         exclude group: 'com.google.protobuf', module: 'protobuf-java'

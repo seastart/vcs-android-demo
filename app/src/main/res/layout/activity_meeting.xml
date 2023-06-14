@@ -7,7 +7,7 @@
     android:id="@+id/root"
     tools:context=".activity.MeetingActivity">
 
-    <com.ook.android.ikPlayer.VcsPlayerGlSurfaceView
+    <com.ook.android.ikPlayer.VcsPlayerGlTextureView
         android:id="@+id/cameraTextureView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

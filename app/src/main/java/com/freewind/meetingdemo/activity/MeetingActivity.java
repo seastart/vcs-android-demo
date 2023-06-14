@@ -43,18 +43,15 @@ import com.freewind.meetingdemo.util.GlideUtil;
 import com.freewind.meetingdemo.util.PermissionUtil;
 import com.freewind.meetingdemo.util.Requester;
 import com.freewind.meetingdemo.util.ToastUtil;
-import com.freewind.vcs.AudioStatusCallback;
 import com.freewind.vcs.CameraPreview;
 import com.freewind.vcs.Models;
 import com.freewind.vcs.RoomClient;
 import com.freewind.vcs.RoomEvent;
 import com.freewind.vcs.RoomServer;
-import com.freewind.vcs.RoomXChatEvent;
-import com.freewind.vcs.bean.AudioStatusBean;
 import com.freewind.vcs.board.DrawFrameLayout;
-import com.freewind.vcs.impl.DownstreamLevelImpl;
 import com.ook.android.VCS_EVENT_TYPE;
 import com.ook.android.ikPlayer.VcsPlayerGlSurfaceView;
+import com.ook.android.ikPlayer.VcsPlayerGlTextureView;
 
 import java.util.List;
 
@@ -71,7 +68,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
 
     RoomClient roomClient;
     @BindView(R.id.cameraTextureView)
-    VcsPlayerGlSurfaceView cameraTextureView;
+    VcsPlayerGlTextureView cameraTextureView;
     @BindView(R.id.close_preview_tv)
     TextView closePreviewTv;
     @BindView(R.id.window_rcview)
@@ -233,7 +230,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     }
 
     @Override
-    public void onNotifyKickOut(String accountId) {
+    public void onNotifyKickOut(RoomServer.KickoutNotify kickoutNotify) {
         Log.e(TAG, "onNotifyKickout   你被踢出了会议室");
         onBackPressed();
     }
@@ -325,7 +322,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     public void onFrame(byte[] ost, byte[] tnd, byte[] trd, int width, int height, int format, int streamId, int mask, int label) {
         Log.e("3333333333", "onFrame  " + "  clientId: " + streamId + "   " + width + " " + height + "   mask:" + mask);
         if (windowAdapter != null) {
-            VcsPlayerGlSurfaceView vcsPlayerGlTextureView = getTargetSurfaceView(streamId);
+            VcsPlayerGlTextureView vcsPlayerGlTextureView = getTargetSurfaceView(streamId);
             if (vcsPlayerGlTextureView != null) {
                 vcsPlayerGlTextureView.update(width, height, format);
                 vcsPlayerGlTextureView.update(ost, tnd, trd, format, label);
@@ -333,8 +330,8 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
         }
     }
 
-    private VcsPlayerGlSurfaceView getTargetSurfaceView(int sdkNo){
-        VcsPlayerGlSurfaceView vcsPlayerGlTextureView = null;
+    private VcsPlayerGlTextureView getTargetSurfaceView(int sdkNo){
+        VcsPlayerGlTextureView vcsPlayerGlTextureView = null;
         if (mainWindowMember != null && mainWindowMember.getSdkNo() == sdkNo) {
             vcsPlayerGlTextureView = cameraTextureView;
         } else {
@@ -603,8 +600,8 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
 
         MyApplication.isMeeting = true;
 
-        cameraTextureView.setZOrderOnTop(false);
-        cameraTextureView.setZOrderMediaOverlay(false);
+//        cameraTextureView.setZOrderOnTop(false);
+//        cameraTextureView.setZOrderMediaOverlay(false);
 
 
 //        cameraTextureView.customDisplayCtrl(true);
@@ -1117,12 +1114,9 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     private void initRecording() {
         //这里采用编码方式 默认也采用编码方式，这时候流对应的track=2,camera 流没有停止，如果采用NoEncoderMode 模式 那么 录屏启动后 camera
         // 流将会被停止发送 这时候原来的track保持不变
-        roomClient.initScreenRecorder(true, VCS_EVENT_TYPE.EncoderMode);
+        roomClient.initScreenRecorder(true,1200, 10, 1280, 720);
         //设置录屏时通知栏样式,shouldNotification = true时有效
         roomClient.setRecordNotification(R.mipmap.ic_launcher, "正在共享屏幕", "点击按钮结束录制", "停止录制");
-        //设置录屏大小如果不采用编码方式那么这个大小应该和VCS_CreateVideoOutput 设置大小保持一致，编码方式那么就是自己設置【最大值1920x1080】
-        //alterable 设置大小是否随横竖屏进行变换调整，当前版本设置无效·
-        roomClient.setRecordingSize(1280, 720, true);
 
         roomClient.setScreenRecordListener((event, info) -> {
             switch (event) {
@@ -1233,7 +1227,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
 
     @Override
     public void onPreviewFrame(byte[] yuv, int width, int height, long stamp, int format, int angle) {
-        VcsPlayerGlSurfaceView vcsPlayerGlSurfaceView = getTargetSurfaceView(selfMember.getSdkNo());
+        VcsPlayerGlTextureView vcsPlayerGlSurfaceView = getTargetSurfaceView(selfMember.getSdkNo());
         if (vcsPlayerGlSurfaceView != null) {
             vcsPlayerGlSurfaceView.update(width, height, format);
             vcsPlayerGlSurfaceView.update(yuv, format);
