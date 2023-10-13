@@ -11,6 +11,7 @@ import com.freewind.meetingdemo.bean.UserInfoBean;
 import com.freewind.meetingdemo.common.Constants;
 import com.freewind.meetingdemo.http.HttpCallBack;
 import com.freewind.meetingdemo.http.HttpHelper;
+import com.freewind.vcs.util.DeviceInfoUtil;
 import com.loopj.android.http.RequestParams;
 
 import java.util.ArrayList;
@@ -51,23 +52,13 @@ public class Requester {
         HttpHelper.executePost(RoomInfoBean.class, url, params, paramsList, callBack);
     }
 
-    @SuppressLint({"NewApi", "MissingPermission"})
+    @SuppressLint("HardwareIds")
     public static String getDeviceID(Context context){
-        try {
-            TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            String deviceId = tm.getDeviceId();
-            if (deviceId == null){
-                deviceId = "deviceId";
-            }
-            return deviceId;
-        } catch (Exception e){
-            String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-
-            if (androidId == null){
-                androidId = "androidId";
-            }
-            return androidId;
-        }
+        String id = Settings.Secure.getString(
+                DeviceInfoUtil.getApp().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+        return id == null ? "AndroidID" : id;
     }
 
     /**

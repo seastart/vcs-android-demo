@@ -25,7 +25,7 @@ import com.freewind.vcs.VcsServer;
 
 public class LoginActivity extends AppCompatActivity {
 
-    Button loginBtn, registerBtn, setBtn, forgetBtn;
+    Button loginBtn, registerBtn, setBtn, forgetBtn, screenBtn;
     EditText accountEt;
     EditText pwdEt;
 
@@ -39,6 +39,7 @@ public class LoginActivity extends AppCompatActivity {
         pwdEt = findViewById(R.id.pwd_et);
         setBtn = findViewById(R.id.set_btn);
         forgetBtn = findViewById(R.id.forget_btn);
+        screenBtn = findViewById(R.id.screen_btn);
 
         accountEt.setText(UserConfig.getSpAdmin());
         pwdEt.setText(UserConfig.getSpPassword());
@@ -94,6 +95,13 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(new Intent(LoginActivity.this, RegisterActivity.class).putExtra(RegisterActivity.TYPE, 1));
             }
         });
+
+        screenBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(LoginActivity.this, ScreenActivity.class));
+            }
+        });
     }
 
     private void setMsgListener(){
@@ -128,7 +136,7 @@ public class LoginActivity extends AppCompatActivity {
                             Requester.enterMeeting(getApplicationContext(), roomNo, "", "", new HttpCallBack<RoomInfoBean>() {
                                 @Override
                                 public void onSucceed(RoomInfoBean data) {
-                                    startActivity(new Intent(getApplicationContext(), Constants.class)
+                                    startActivity(new Intent(getApplicationContext(), MeetingActivity.class)
                                             .putExtra(Constants.DEBUG_ADDR, "")
                                             .putExtra(Constants.DEBUG_SWITCH, false)
                                             .putExtra(Constants.MULTI, true)

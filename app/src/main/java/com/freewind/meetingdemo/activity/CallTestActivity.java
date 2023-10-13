@@ -14,10 +14,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.freewind.meetingdemo.R;
 import com.freewind.meetingdemo.common.UserConfig;
 import com.freewind.meetingdemo.util.ToastUtil;
+import com.freewind.vcs.MessageManager;
 import com.freewind.vcs.Models;
 import com.freewind.vcs.Register;
 import com.freewind.vcs.VcsServer;
-import com.freewind.vcs.util.MessageManager;
 
 import java.util.ArrayList;
 import java.util.List;

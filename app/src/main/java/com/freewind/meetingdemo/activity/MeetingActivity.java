@@ -39,6 +39,7 @@ import com.freewind.meetingdemo.common.UserConfig;
 import com.freewind.meetingdemo.http.HttpCallBack;
 import com.freewind.meetingdemo.util.DisplayUtil;
 import com.freewind.meetingdemo.util.FloatingButtonService;
+import com.freewind.meetingdemo.util.ForeService;
 import com.freewind.meetingdemo.util.GlideUtil;
 import com.freewind.meetingdemo.util.PermissionUtil;
 import com.freewind.meetingdemo.util.Requester;
@@ -138,6 +139,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
 
     public MemberBean mainWindowMember;//保存在主窗口的成员的信息
     public MemberBean selfMember;
+    Intent mForegroundService;
 
     @Override
     public void onEnter(int result) {
@@ -247,7 +249,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
      * int terminalType;                   //登录终端类型：1-PC,2-Android,3-IOS,4-安卓一体机,5-录播主机
      */
     @Override
-    public void onNotifyEnter(Models.Account account) {
+    public void onNotifyEnter(Models.Account account, String msgId) {
         final int sdkNo = account.getStreamId();
         Log.e(TAG, "onNotifyEnter: 有人进入房间" + "  sdkno: " + sdkNo);
 
@@ -579,6 +581,11 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     }
 
     @Override
+    public void onMcuRunStateNotify(RoomServer.McuRunStateNotify mcuRunStateNotify) {
+
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED, WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
@@ -599,6 +606,13 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
         initRecording();
 
         MyApplication.isMeeting = true;
+        mForegroundService = new Intent(this, ForeService.class);
+        // Android 8.0使用startForegroundService在前台启动新服务
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            startForegroundService(mForegroundService);
+        } else {
+            startService(mForegroundService);
+        }
 
 //        cameraTextureView.setZOrderOnTop(false);
 //        cameraTextureView.setZOrderMediaOverlay(false);
@@ -860,6 +874,9 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
         }
         if (roomClient != null) {
             roomClient.close();//退出释放
+        }
+        if (mForegroundService != null){
+            stopService(mForegroundService);
         }
         MyApplication.isMeeting = false;
         super.onDestroy();

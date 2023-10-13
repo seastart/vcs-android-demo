@@ -14,10 +14,14 @@ import com.freewind.meetingdemo.common.Constants;
 import com.freewind.meetingdemo.common.UserConfig;
 import com.freewind.meetingdemo.util.EncryptUtil;
 import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.MySSLSocketFactory;
 import com.loopj.android.http.RequestParams;
 import com.loopj.android.http.TextHttpResponseHandler;
 
-import java.util.ArrayList;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,8 +40,20 @@ public class HttpHelper {
     public static final String APP_KEY = "a67c660b29234e2891cc6627fc6401ce";
 
 
+
     private static AsyncHttpClient getAsyncInstance(){
         AsyncHttpClient httpClient = new AsyncHttpClient();
+        try {
+            httpClient.setSSLSocketFactory(new MySSLSocketFactory(MySSLSocketFactory.getKeystore()));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (KeyManagementException e) {
+            throw new RuntimeException(e);
+        } catch (KeyStoreException e) {
+            throw new RuntimeException(e);
+        } catch (UnrecoverableKeyException e) {
+            throw new RuntimeException(e);
+        }
 
         httpClient.addHeader("nvc-appid",APP_ID);
         httpClient.addHeader("nvc-token", UserConfig.getRequestToken());

@@ -34,7 +34,7 @@ public class DialogActivity extends FragmentActivity {
                 Requester.enterMeeting(DialogActivity.this, roomNo, roomPwd, "", new HttpCallBack<RoomInfoBean>() {
                     @Override
                     public void onSucceed(RoomInfoBean data) {
-                        startActivity(new Intent(DialogActivity.this, Constants.class)
+                        startActivity(new Intent(DialogActivity.this, MeetingActivity.class)
                                 .putExtra(Constants.DEBUG_ADDR, "")
                                 .putExtra(Constants.DEBUG_SWITCH, false)
                                 .putExtra(Constants.MULTI, true)

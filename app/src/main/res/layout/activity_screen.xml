@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".activity.LoginActivity">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:layout_gravity="center"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/address_ll"
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:text="投屏地址："
+                style="@style/LabelStyle" />
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/address_et"
+                style="@style/InputStyle"
+                android:hint="请输入投屏地址"
+                android:inputType="text"
+                android:text="192.168.7.246" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:text="用户名称："
+                style="@style/LabelStyle" />
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/name_et"
+                android:hint="请输入名称"
+                android:inputType="text"
+                android:text="哈哈哈哈"
+                style="@style/InputStyle" />
+
+        </LinearLayout>
+
+        <CheckBox
+            android:id="@+id/audio_check_box"
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="采集音频"/>
+
+        <Button
+            android:id="@+id/start_btn"
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="开始投屏"/>
+
+        <Button
+            android:id="@+id/send_video_btn"
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="发送视频"/>
+
+        <Button
+            android:id="@+id/send_audio_btn"
+            android:visibility="invisible"
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="发送音频"/>
+
+        <TextView
+            android:id="@+id/logTv"
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="100dp" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <FrameLayout
+        android:id="@+id/progressFl"
+        android:visibility="gone"
+        android:background="#33000000"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ProgressBar
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </FrameLayout>
+
+</FrameLayout>

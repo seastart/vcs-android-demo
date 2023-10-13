@@ -22,7 +22,8 @@
         <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/account_et"
             android:hint="请输入账号"
-            android:text="15105013004"
+            android:text="arcloud_user12"
+            android:inputType="text"
             style="@style/InputStyle" />
 
     </LinearLayout>
@@ -41,7 +42,7 @@
             android:id="@+id/pwd_et"
             android:hint="请输入密码"
             android:inputType="text"
-            android:text="123456"
+            android:text="qweasd123456"
             style="@style/InputStyle" />
 
     </LinearLayout>
@@ -73,5 +74,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="配置服务器"/>
+
+    <Button
+        android:id="@+id/screen_btn"
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="投屏"/>
 
 </LinearLayout>
