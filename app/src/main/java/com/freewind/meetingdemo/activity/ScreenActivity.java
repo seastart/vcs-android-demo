@@ -337,4 +337,9 @@ public class ScreenActivity extends AppCompatActivity implements ScreenEvent{
             logTv.setText(info);
         }
     }
+
+    @Override
+    public void onJamLevelChanged(int i) {
+
+    }
 }

@@ -98,6 +98,11 @@ public class ScreenUtil {
                     screenEvent.onUploadStatus(info);
                 }
             }
+
+            @Override
+            public void onJamLevelChanged(int i) {
+
+            }
         });
     }
 
@@ -108,7 +113,7 @@ public class ScreenUtil {
         if (screenHelper == null){
             return;
         }
-        screenHelper.startScreenRecording(sendAudio, debugAddress);
+        screenHelper.startScreenRecording(sendAudio, true, debugAddress);
     }
 
     /**

@@ -40,6 +40,7 @@ android {
             jniLibs.srcDirs = ['libs']
         }
     }
+
 }
 
 repositories {
@@ -57,7 +58,9 @@ dependencies {
     implementation 'com.alibaba:fastjson:1.2.48'
     implementation 'com.loopj.android:android-async-http:1.4.9'
 
-    implementation 'com.shiyuan.core:vcs:1.2.8'//通用版本
+    api 'com.shiyuan.core:vcs:1.2.9-seminar-test35'
+
+//    implementation 'com.shiyuan.core:vcs:1.2.9-sreen0-3'
 
     implementation ('com.shiyuan.core:vcs-whiteboard:1.0.22-9'){
         exclude group: 'com.google.protobuf', module: 'protobuf-java'

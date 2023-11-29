@@ -320,9 +320,10 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
         onBackPressed();
     }
 
+
     @Override
-    public void onFrame(byte[] ost, byte[] tnd, byte[] trd, int width, int height, int format, int streamId, int mask, int label) {
-        Log.e("3333333333", "onFrame  " + "  clientId: " + streamId + "   " + width + " " + height + "   mask:" + mask);
+    public void onFrame(byte[] ost, byte[] tnd, byte[] trd, int width, int height, int format, int streamId, int mask, int label, int stamp) {
+        Log.e("3333333333", "onFrame  " + "  clientId: " + streamId + "   " + width + " " + height + "   mask:" + mask + "   label:" + label);
         if (windowAdapter != null) {
             VcsPlayerGlTextureView vcsPlayerGlTextureView = getTargetSurfaceView(streamId);
             if (vcsPlayerGlTextureView != null) {
@@ -581,9 +582,14 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     }
 
     @Override
-    public void onMcuRunStateNotify(RoomServer.McuRunStateNotify mcuRunStateNotify) {
+    public void onRoomCount(Models.RoomCountInfo roomCountInfo) {
 
     }
+
+//    @Override
+//    public void onMcuRunStateNotify(RoomServer.McuRunStateNotify mcuRunStateNotify) {
+//
+//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -682,7 +688,8 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
         if (openDebug) {
             roomClient = new RoomClient(this, roomSdkNo, trackServer);
         } else {
-            roomClient = new RoomClient(this, roomSdkNo);
+            roomClient = new RoomClient(this, roomSdkNo, "", true, true);
+//            roomClient = new RoomClient(this, roomSdkNo);
         }
 
         roomClient.setRoomEvent(this);//设置会议回调
