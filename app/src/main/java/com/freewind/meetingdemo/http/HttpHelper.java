@@ -29,17 +29,9 @@ import cz.msebera.android.httpclient.Header;
 
 public class HttpHelper {
     private static final String TAG_RESPONSE = "HttpResponse";
-    //"0a16828823ce41c5ad040be3ed384c14";
 
-    /**
-     * APPID:    8847d560e2764adbb479c83dcc5135c9
-     * APPKEY:   4f7e524b73b84aa48f8ab27f0255df63
-     */
-
-    public static final String APP_ID = "0a16828823ce41c5ad040be3ed384c14";
-    public static final String APP_KEY = "a67c660b29234e2891cc6627fc6401ce";
-
-
+    public static final String APP_ID = "输入你的APP_ID";
+    public static final String APP_KEY = "输入你的APP_KEY";
 
     private static AsyncHttpClient getAsyncInstance(){
         AsyncHttpClient httpClient = new AsyncHttpClient();
