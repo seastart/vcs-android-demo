@@ -125,14 +125,14 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(this, CallTestActivity.class));
                 break;
             case R.id.ip_addr_tv:
-                Register.WaitingAccount.Builder builder = Register.WaitingAccount.newBuilder();
-                builder.setId("5c3500d3826946a38bc9804daa03bbbb");
-                builder.setRoomNo("915105013005");
-                builder.setName("22222");
-                builder.setNickname("222223333");
-                builder.setStatus(Register.InviteStatus.Waiting);
-
-                VcsServer.getInstance().call("915105013005", false, builder.build());
+//                Register.WaitingAccount.Builder builder = Register.WaitingAccount.newBuilder();
+//                builder.setId("5c3500d3826946a38bc9804daa03bbbb");
+//                builder.setRoomNo("915105013005");
+//                builder.setName("22222");
+//                builder.setNickname("222223333");
+//                builder.setStatus(Register.InviteStatus.Waiting);
+//
+//                VcsServer.getInstance().call("915105013005", false, builder.build());
 //                Uri uri = Uri.parse("ezmconf://info?mobile=15105013001&pwd=123456&no=41849892&video=true&audio=true");
 //                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
 //                startActivity(intent);
