@@ -21,6 +21,27 @@ public class MeetingBean extends BaseBean {
     private String wb_host;
     private String meeting_server_id;
     private String upload_id;
+    public String acc_mode;
+
+    public boolean isSeminarMode(){
+        if (acc_mode != null){
+            if (acc_mode.equals("1")){
+                return true;
+            }else {
+                return false;
+            }
+        }else {
+            return false;
+        }
+    }
+
+    public String getAcc_mode() {
+        return acc_mode;
+    }
+
+    public void setAcc_mode(String acc_mode) {
+        this.acc_mode = acc_mode;
+    }
 
     public String getUpload_id() {
         return upload_id;

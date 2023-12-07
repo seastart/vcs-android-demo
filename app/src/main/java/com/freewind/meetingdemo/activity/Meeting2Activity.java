@@ -273,9 +273,20 @@ public class Meeting2Activity extends PermissionActivity implements RoomEvent, C
     public void onNotifyHandUp(RoomServer.HandUpNotify handUpNotify) {}
 
     @Override
-    public void onRoomCount(Models.RoomCountInfo roomCountInfo) {
+    public void onMcuRunStateNotify(RoomServer.McuRunStateNotify mcuRunStateNotify) {
 
     }
+
+    @Override
+    public void onNotifyAudienceNum(RoomServer.WebinarAudienceNumNotify webinarAudienceNumNotify) {
+
+    }
+
+    @Override
+    public void onNotifyWebinarRole(RoomServer.WebinarRoleNotify webinarRoleNotify) {
+
+    }
+
 
 //    @Override
 //    public void onMcuRunStateNotify(RoomServer.McuRunStateNotify mcuRunStateNotify) {}
@@ -422,14 +433,15 @@ public class Meeting2Activity extends PermissionActivity implements RoomEvent, C
             }
 
             @Override
-            public void subscribeCtrlTopicFailure() {
+            public void subscribeCtrlTopicFailure(String s, Throwable throwable) {
 
             }
 
             @Override
-            public void subscribeCtrlTopicSuccess() {
+            public void subscribeCtrlTopicSuccess(String s) {
 
             }
+
         });
 
         roomClient.setSoft3A(true);//音频优化

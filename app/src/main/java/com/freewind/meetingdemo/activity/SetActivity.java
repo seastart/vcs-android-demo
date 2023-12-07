@@ -36,6 +36,9 @@ public class SetActivity extends AppCompatActivity {
     @BindView(R.id.encoder_tv)
     TextView encoderTv;
 
+    @BindView(R.id.srtcTv)
+    TextView srtcTv;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,9 +48,12 @@ public class SetActivity extends AppCompatActivity {
         encoderTv.setText(selectCodec());
     }
 
-    @OnClick({R.id.back_tv, R.id.save_btn, R.id.tv180, R.id.tvezm})
+    @OnClick({R.id.back_tv, R.id.save_btn, R.id.tv180, R.id.tvezm, R.id.srtcTv})
     public void onClick(View view) {
         switch (view.getId()) {
+            case R.id.srtcTv:
+                addrEt.setText(srtcTv.getText());
+                break;
             case R.id.back_tv:
                 finish();
                 break;

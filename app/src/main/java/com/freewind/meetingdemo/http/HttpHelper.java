@@ -9,6 +9,7 @@ package com.freewind.meetingdemo.http;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSONObject;
+import com.freewind.meetingdemo.BuildConfig;
 import com.freewind.meetingdemo.base.BaseBean;
 import com.freewind.meetingdemo.common.Constants;
 import com.freewind.meetingdemo.common.UserConfig;
@@ -30,9 +31,6 @@ import cz.msebera.android.httpclient.Header;
 public class HttpHelper {
     private static final String TAG_RESPONSE = "HttpResponse";
 
-    public static final String APP_ID = "输入你的APP_ID";
-    public static final String APP_KEY = "输入你的APP_KEY";
-
     private static AsyncHttpClient getAsyncInstance(){
         AsyncHttpClient httpClient = new AsyncHttpClient();
         try {
@@ -47,7 +45,7 @@ public class HttpHelper {
             throw new RuntimeException(e);
         }
 
-        httpClient.addHeader("nvc-appid",APP_ID);
+        httpClient.addHeader("nvc-appid", BuildConfig.VCS_APP_ID);
         httpClient.addHeader("nvc-token", UserConfig.getRequestToken());
 //        httpClient.addHeader("nvc-signature","");
         httpClient.addHeader("Accept", "application/json");
@@ -66,14 +64,14 @@ public class HttpHelper {
         //将整个参数键值对集合按照参数名字典序排序
         //将排序好的参数集合输出成FormUrlEcnode的格式
         //将FormUrlEcnode字符串使用AppKey进行HMacSha1进行签名，所得结果转换为小写16进制字符串
-        paramsList.add("appid=" + APP_ID);
+        paramsList.add("appid=" + BuildConfig.VCS_APP_ID);
         Collections.sort(paramsList, String::compareTo);
         StringBuilder stringBuilder = new StringBuilder();
         for (String name : paramsList) {
             stringBuilder.append(name).append("&");
         }
         stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-        httpClient.addHeader("vcs-signature", EncryptUtil.HmacSHA1Encrypt(stringBuilder.toString(), APP_KEY));//签名
+        httpClient.addHeader("vcs-signature", EncryptUtil.HmacSHA1Encrypt(stringBuilder.toString(), BuildConfig.VCS_APP_KEY));//签名
 
         httpClient.post(url, params, new TextHttpResponseHandler() {
             @Override
@@ -120,14 +118,14 @@ public class HttpHelper {
         //将整个参数键值对集合按照参数名字典序排序
         //将排序好的参数集合输出成FormUrlEcnode的格式
         //将FormUrlEcnode字符串使用AppKey进行HMacSha1进行签名，所得结果转换为小写16进制字符串
-        paramsList.add("appid=" + APP_ID);
+        paramsList.add("appid=" + BuildConfig.VCS_APP_ID);
         Collections.sort(paramsList, String::compareTo);
         StringBuilder stringBuilder = new StringBuilder();
         for (String name : paramsList) {
             stringBuilder.append(name).append("&");
         }
         stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-        httpClientient.addHeader("vcs-signature", EncryptUtil.HmacSHA1Encrypt(stringBuilder.toString(), APP_KEY));//签名
+        httpClientient.addHeader("vcs-signature", EncryptUtil.HmacSHA1Encrypt(stringBuilder.toString(), BuildConfig.VCS_APP_KEY));//签名
 
 
         httpClientient.get(url, params, new TextHttpResponseHandler() {

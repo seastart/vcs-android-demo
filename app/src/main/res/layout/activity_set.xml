@@ -47,6 +47,14 @@
         android:textColor="#000"
         android:text="https://ezm.ys7.com"/>
 
+    <TextView
+        android:id="@+id/srtcTv"
+        android:padding="15dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#000"
+        android:text="https://dev.srtc.live:9000"/>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"

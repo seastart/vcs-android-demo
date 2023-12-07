@@ -112,7 +112,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final WindowAdapter.MyViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull final MyViewHolder holder, final int position) {
         final MemberBean memberBean = memberList.get(position);
         holder.nameTv.setText(memberBean.getSdkNo() + "");
 
@@ -131,14 +131,14 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
         }
 
         if (memberBean.isCloseVideo()){
-            holder.selfCloseTv.setVisibility(View.VISIBLE);
+//            holder.selfCloseTv.setVisibility(View.VISIBLE);
             if (memberBean.getCloseVideo() == Models.DeviceState.DS_Active){
                 //被主持人关闭了视频
             }else {
                 //没被主持人关闭视频
             }
         }else {
-            holder.selfCloseTv.setVisibility(View.GONE);
+//            holder.selfCloseTv.setVisibility(View.GONE);
         }
 
         if (memberBean.getMute() == Models.DeviceState.DS_Disabled){
@@ -173,15 +173,6 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
 
         holder.kickBtn.setOnClickListener(view -> ((MeetingActivity)context).kickOut(memberBean.getAccountId()));
 
-        holder.hostCloseVideoBtn.setOnClickListener(view -> ((MeetingActivity)context).hostCtrlMember(
-                memberBean.getAccountId(),
-                memberBean.getCloseVideo() == Models.DeviceState.DS_Active ? Models.DeviceState.DS_Disabled : Models.DeviceState.DS_Active,
-                null));
-
-        holder.hostCloseAudioBtn.setOnClickListener(view -> ((MeetingActivity)context).hostCtrlMember(
-                memberBean.getAccountId(),
-                null,
-                memberBean.getMute() == Models.DeviceState.DS_Active ? Models.DeviceState.DS_Disabled : Models.DeviceState.DS_Active));
 
         holder.btn1.setOnClickListener(view -> {
 //            ((MeetingActivity)context).setH264(memberBean.getSdkNo(), 1);//track0
@@ -195,7 +186,7 @@ public class WindowAdapter extends  RecyclerView.Adapter<WindowAdapter.MyViewHol
 
         holder.btn3.setOnClickListener(view -> {
 //            ((MeetingActivity)context).setH264(memberBean.getSdkNo(), 4);//track2
-            ((MeetingActivity)context).useChannel(memberBean.getSdkNo(), 4);//track3
+            ((MeetingActivity)context).useChannel(memberBean.getSdkNo(), 4);//track2
         });
 
         holder.btn4.setOnClickListener(view -> {

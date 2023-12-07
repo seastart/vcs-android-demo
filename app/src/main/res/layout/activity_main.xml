@@ -32,7 +32,7 @@
 
             <androidx.appcompat.widget.AppCompatEditText
                 android:id="@+id/room_no_et"
-                android:text="989872141"
+                android:text="23683126"
                 android:hint="输入房间号"
                 android:inputType="text"
                 style="@style/InputStyle" />
@@ -196,6 +196,7 @@
             <CheckBox
                 android:id="@+id/video_check_box"
                 android:focusable="true"
+                android:checked="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
@@ -208,6 +209,7 @@
             <CheckBox
                 android:id="@+id/audio_check_box"
                 android:focusable="true"
+                android:checked="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 

@@ -1,6 +1,7 @@
 package com.freewind.meetingdemo.activity;
 
 import android.annotation.SuppressLint;
+import android.app.PictureInPictureParams;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -9,6 +10,7 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +18,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -37,6 +40,7 @@ import com.freewind.meetingdemo.bean.RoomInfoBean;
 import com.freewind.meetingdemo.common.Constants;
 import com.freewind.meetingdemo.common.UserConfig;
 import com.freewind.meetingdemo.http.HttpCallBack;
+import com.freewind.meetingdemo.util.DialogUtils;
 import com.freewind.meetingdemo.util.DisplayUtil;
 import com.freewind.meetingdemo.util.FloatingButtonService;
 import com.freewind.meetingdemo.util.ForeService;
@@ -44,12 +48,18 @@ import com.freewind.meetingdemo.util.GlideUtil;
 import com.freewind.meetingdemo.util.PermissionUtil;
 import com.freewind.meetingdemo.util.Requester;
 import com.freewind.meetingdemo.util.ToastUtil;
+import com.freewind.vcs.AudioStatusCallback;
 import com.freewind.vcs.CameraPreview;
+import com.freewind.vcs.MessageManager;
 import com.freewind.vcs.Models;
 import com.freewind.vcs.RoomClient;
 import com.freewind.vcs.RoomEvent;
 import com.freewind.vcs.RoomServer;
+import com.freewind.vcs.bean.AudioStatusBean;
 import com.freewind.vcs.board.DrawFrameLayout;
+import com.freewind.vcs.impl.MqttConnectStatusImpl;
+import com.freewind.vcs.impl.StreamStatusEvent;
+import com.freewind.vcs.menu.AudioRouterMenu;
 import com.ook.android.VCS_EVENT_TYPE;
 import com.ook.android.ikPlayer.VcsPlayerGlSurfaceView;
 import com.ook.android.ikPlayer.VcsPlayerGlTextureView;
@@ -67,6 +77,7 @@ import butterknife.OnClick;
  */
 public class MeetingActivity extends PermissionActivity implements RoomEvent, CameraPreview {
 
+
     RoomClient roomClient;
     @BindView(R.id.cameraTextureView)
     VcsPlayerGlTextureView cameraTextureView;
@@ -74,8 +85,6 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     TextView closePreviewTv;
     @BindView(R.id.window_rcview)
     RecyclerView windowRcView;
-    @BindView(R.id.rec_btn)
-    Button recordingBtn;
     @BindView(R.id.camera_switch_btn)
     Button cameraSwitchBtn;
     @BindView(R.id.camera_light_btn)
@@ -96,12 +105,8 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     TextView nameTv;
     @BindView(R.id.progress_bar)
     ProgressBar progressBar;
-
-    @BindView(R.id.boardFl)
-    FrameLayout boardFl;
-
-    @BindView(R.id.drawer)
-    DrawFrameLayout drawFrameLayout;
+    @BindView(R.id.rec_btn)
+    Button recordingBtn;
 
     private int videoH = 480;
     private int videoW = 848;
@@ -113,24 +118,30 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     private boolean isSendSelfVideo = true;//是否发送自己的视频
     private boolean isSendSelfAudio = true;//是否发送自己的音频
 
-    private String trackServer = "";
-    private boolean openDebug = false;
     private boolean isMulti = false;
     private int roomSdkNo;
     private static String TAG = "4444444444";
+
+    public static final String MULTI = "multi";
+    public static final String AGC = "agc";
+    public static final String AEC = "aec";
+    public static final String FPS = "fps";
+    public static final String CLOSE_SELF_VIDEO = "close_self_video";
+    public static final String CLOSE_SELF_AUDIO = "close_self_audio";
+    public static final String CLOSE_OTHER_AUDIO = "close_other_audio";
+    public static final String CLOSE_OTHER_VIDEO = "close_other_video";
+    public static final String SAMPLE_RATE = "sample_rate";
+    public static final String HARD_DECODER = "hard_decoder";
+    public static final String ROOM_INFO = "room_info";
+    public static final String VIDEO_LEVEL = "video_level";
 
     private MeetingBean meetingBean;
 
     private boolean closeOtherAudio;//关闭他人音频模式
     private boolean closeOtherVideo;//关闭他人视频模式
 
-    private int agc = 10000;//自动增益
-    private int aec = 12;//回音消除
-    private int sampleRate = 48000;
-
     int level = 0;//0:720P  1:1080P
 
-    private boolean hardDecoder = false;
     private boolean isRecvAudio = true, isRecvVideo = true;//默认接收
 
     private WindowAdapter windowAdapter;
@@ -139,39 +150,50 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
 
     public MemberBean mainWindowMember;//保存在主窗口的成员的信息
     public MemberBean selfMember;
+
     Intent mForegroundService;
 
     @Override
     public void onEnter(int result) {
         //如果result != 0 则表示服务器上的token已经失效，需要进行重新进入房间的逻辑
-        Log.e(TAG, "onEnter:" + result + "");
+        Log.e("2222222", result + "");
         if (result != 0) {
-            ToastUtil.getInstance().showLongToast("正在进行重连");
-            if (progressBar.getVisibility() == View.VISIBLE) {
-                return;
-            }
-            if (meetingBean.getAccount() == null || meetingBean.getAccount().getRoom() == null) {
-                return;
-            }
-            progressBar.setVisibility(View.VISIBLE);
-            Requester.enterMeeting(this, meetingBean.getAccount().getRoom().getNo(), "", meetingBean.getUpload_id(),new HttpCallBack<RoomInfoBean>() {
+            DialogUtils.getInstance().getConfirmDialog(this, "提示", "是否进行重连？", "取消", "确定", new DialogUtils.CallBack() {
                 @Override
-                public void onSucceed(RoomInfoBean data) {
+                public void onConfirm() {
+                    ToastUtil.getInstance().showLongToast("正在进行重连");
+                    if (progressBar.getVisibility() == View.VISIBLE) {
+                        return;
+                    }
+                    progressBar.setVisibility(View.VISIBLE);
+                    Requester.enterMeeting(MeetingActivity.this, meetingBean.getRoom().getNo(), "", meetingBean.getUpload_id(),new HttpCallBack<RoomInfoBean>() {
+                        @Override
+                        public void onSucceed(RoomInfoBean data) {
 //                    if (data.getCode() == Constants.NEED_PWD) {
 //                        ToastUtil.getInstance().showLongToast("该会议室需要密码");
 //                        onBackPressed();
 //                    }
+                            roomClient.setSession(data.getData().getSession());
+                            MessageManager.getInstance().reSubscribeTopics();
+                            roomClient.reconnect();
+                        }
+
+                        @Override
+                        protected void onComplete(boolean success) {
+                            progressBar.setVisibility(View.GONE);
+                            if (!success){
+                                finish();
+                                ToastUtil.getInstance().showLongToast("连接失败，请重新进入房间");
+                            }
+                        }
+                    });
                 }
 
                 @Override
-                protected void onComplete(boolean success) {
-                    progressBar.setVisibility(View.GONE);
-                    if (!success){
-                        finish();
-                        ToastUtil.getInstance().showLongToast("连接失败，请重新进入房间");
-                    }
+                public void onCancel() {
+                    onBackPressed();
                 }
-            });
+            }).show();
         }
     }
 
@@ -185,48 +207,40 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     @Override
     public void onNotifyRoom(Models.Room room) {
         Log.e(TAG, "onNotifyRoom"
-                + "  id:" + room.getId() + "  sdkNo:" + room.getSharingSdkno()
+                + "  id:" + room.getId() + "  sdkNo:" + room.getSdkNo()
                 + "  sharingAccId:" + room.getSharingAccId()
                 + "  sharingType:" + room.getSharingType()
                 + "  whiteBoard:" + room.getWhiteBoard() + "  state:" + room.getState()
                 + "  type:" + room.getType());
 
-        switch (room.getSharingType().getNumber()){
+        switch (room.getSharingType().getNumber()) {
             case Models.SharingType.ST_None_VALUE:
-                if (boardFl.getVisibility() != View.GONE) {
-                    hideBoard();
-                    shareAccId = "";
-                }
-                if (!shareAccId.isEmpty()){//录屏恢复
-                    roomClient.pickStreamMain(shareAccId);
+                if (!shareAccId.isEmpty()) {//录屏恢复
+                    if (mainWindowMember.getAccountId().equals(shareAccId)){
+                        roomClient.pickStreamMain(shareAccId);
+                    }else{
+                        roomClient.pickStreamSub(shareAccId);
+                    }
                 }
 
                 shareAccId = "";
                 break;
             case Models.SharingType.ST_WhiteBoard_VALUE:
-                if (boardFl.getVisibility() != View.VISIBLE) {
-                    shareAccId = room.getSharingAccId();
-                    loadBoard(false);
-                }
-                break;
             case Models.SharingType.ST_Picture_VALUE:
-                if (boardFl.getVisibility() != View.VISIBLE) {
-                    shareAccId = room.getSharingAccId();
-                    loadBoardImg(room.getSharingPicUrl());
-                }
                 break;
+//                GlideUtil.showImage(this, room.getSharingPicUrl(), drawFrameLayout.getBackView());
             case Models.SharingType.ST_Desktop_VALUE://开启
                 shareAccId = room.getSharingAccId();
-
                 int mask = 0;
                 int sdkNo = 0;
                 try {
                     sdkNo = Integer.parseInt(room.getSharingSdkno());
                     mask = Integer.parseInt(room.getSharingStreamId());
-                }catch (NumberFormatException e){
+                } catch (NumberFormatException e) {
                     e.printStackTrace();
                 }
-                roomClient.setStreamTrackAsync(sdkNo, mask);
+                roomClient.pickMember(sdkNo, true);
+                roomClient.setStreamTrack(sdkNo, mask);
                 break;
         }
     }
@@ -251,9 +265,12 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     @Override
     public void onNotifyEnter(Models.Account account, String msgId) {
         final int sdkNo = account.getStreamId();
-        Log.e(TAG, "onNotifyEnter: 有人进入房间" + "  sdkno: " + sdkNo);
+        Log.e("5555555", "onNotifyEnter: 有人进入房间" + "  sdkno: " + sdkNo);
 
-        roomClient.pickMember(account.getStreamId(), true);
+        if (shareAccId.isEmpty()){
+            roomClient.pickMember(account.getStreamId(), true);
+            roomClient.pickStreamSub(account.getStreamId());
+        }
 
         final MemberBean memberBean = new MemberBean();
         memberBean.setSdkNo(sdkNo);
@@ -316,14 +333,16 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     @Override
     public void onNotifyEnd(String roomId) {
         Log.e(TAG, "onNotifyEnd");
-        ToastUtil.getInstance().showLongToast("主持人结束会议");
         onBackPressed();
     }
 
+    byte[] data;
+    int width, height;
 
     @Override
     public void onFrame(byte[] ost, byte[] tnd, byte[] trd, int width, int height, int format, int streamId, int mask, int label, int stamp) {
-        Log.e("3333333333", "onFrame  " + "  clientId: " + streamId + "   " + width + " " + height + "   mask:" + mask + "   label:" + label);
+//        Log.e("3333333333", "onFrame  " + "  clientId: " + streamId + "   " + width + " " + height + "   mask:" + mask + "   label:" + label
+//                + "   ost:" + ost.length + "   tnd:" + tnd + "   trd:" + trd);
         if (windowAdapter != null) {
             VcsPlayerGlTextureView vcsPlayerGlTextureView = getTargetSurfaceView(streamId);
             if (vcsPlayerGlTextureView != null) {
@@ -331,17 +350,18 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
                 vcsPlayerGlTextureView.update(ost, tnd, trd, format, label);
             }
         }
+
     }
 
-    private VcsPlayerGlTextureView getTargetSurfaceView(int sdkNo){
+    private VcsPlayerGlTextureView getTargetSurfaceView(int sdkNo) {
         VcsPlayerGlTextureView vcsPlayerGlTextureView = null;
         if (mainWindowMember != null && mainWindowMember.getSdkNo() == sdkNo) {
             vcsPlayerGlTextureView = cameraTextureView;
         } else {
             WindowAdapter.MyViewHolder holder;
-            if (sdkNo == selfMember.getSdkNo()){
+            if (sdkNo == selfMember.getSdkNo()) {
                 holder = windowAdapter.getHolders().get(mainWindowMember.getSdkNo());
-            }else {
+            } else {
                 holder = windowAdapter.getHolders().get(sdkNo);
             }
             if (holder != null && holder.textureView != null) {
@@ -485,9 +505,9 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     }
 
     @Override
-    public void onNotifyMyAccount(RoomServer.MyAccountNotify notify, boolean fromRoomEnter) {
+    public void onNotifyMyAccount(RoomServer.MyAccountNotify myAccountNotify, boolean b) {
         //sdk已经把数据同步到RoomClient的account里面了，
-        Models.Account account = notify.getAccount();
+        Models.Account account = myAccountNotify.getAccount();
         Log.e(TAG, "onNotifyMyAccount"
                 + "  id:" + account.getId() + "  streamId:" + account.getStreamId()
                 + "  name:" + account.getName() + "  nickname:" + account.getNickname()
@@ -510,7 +530,6 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
                 + "  channelType:" + streamNotify.getStream().getChannelType()
                 + "  type:" + streamNotify.getStream().getType());
 
-        streamNotify.getAccountId(); //判断哪个用户
 
         switch (streamNotify.getOperation().getNumber()) {
             case Models.Operation.Operation_Remove_VALUE://流关闭
@@ -553,7 +572,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
      */
     @Override
     public void onRecvStatus(int i, int streamId) {
-        Log.e("onRecvStatus", streamId + "   " + i);
+
     }
 
     /**
@@ -573,7 +592,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
      */
     @Override
     public void onNotifyChat(RoomServer.ChatNotify chatNotify) {
-        ToastUtil.getInstance().showLongToast(chatNotify.getAccountName() + ":" + chatNotify.getMessage());
+        ToastUtil.getInstance().showLongToast(chatNotify.getMessage());
     }
 
     @Override
@@ -582,14 +601,20 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     }
 
     @Override
-    public void onRoomCount(Models.RoomCountInfo roomCountInfo) {
+    public void onNotifyAudienceNum(RoomServer.WebinarAudienceNumNotify roomCountInfo) {
+        Log.e("22222222", "audienceNum:"+roomCountInfo.getAudienceNum() + "   accountListSize:" + roomClient.getAccountList().size());
+    }
+
+    @Override
+    public void onNotifyWebinarRole(RoomServer.WebinarRoleNotify roleNotify) {
 
     }
 
-//    @Override
-//    public void onMcuRunStateNotify(RoomServer.McuRunStateNotify mcuRunStateNotify) {
-//
-//    }
+    @Override
+    public void onMcuRunStateNotify(RoomServer.McuRunStateNotify mcuRunStateNotify) {
+        mcuRunStateNotify.getMcuStatus();//0 正常录制 1 录制异常
+        mcuRunStateNotify.getMcuMsg();//相关信息
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -606,13 +631,17 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
         super.onCreate();
         floatIntent = new Intent(MeetingActivity.this, FloatingButtonService.class);
         isLand = this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
-
         initView();
         initVcsApi();
         initRecording();
 
-        MyApplication.isMeeting = true;
+//        Utils.sendNotification(this);
+
+//        cameraTextureView.customDisplayCtrl(true);
+//        cameraTextureView.setViewScaleType(VCS_EVENT_TYPE.CENTERCROP);
+
         mForegroundService = new Intent(this, ForeService.class);
+
         // Android 8.0使用startForegroundService在前台启动新服务
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             startForegroundService(mForegroundService);
@@ -620,55 +649,37 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
             startService(mForegroundService);
         }
 
-//        cameraTextureView.setZOrderOnTop(false);
-//        cameraTextureView.setZOrderMediaOverlay(false);
-
-
-//        cameraTextureView.customDisplayCtrl(true);
-//        cameraTextureView.setViewScaleType(VCS_EVENT_TYPE.CENTERCROP);
     }
+
+    boolean openDebug;
+    private String trackServer = "";
 
     private void initView() {
         setContentView(R.layout.activity_meeting);
         ButterKnife.bind(this);
 
         Intent intent = getIntent();
-        meetingBean = (MeetingBean) intent.getSerializableExtra(Constants.ROOM_INFO);
+
+        meetingBean = (MeetingBean) intent.getSerializableExtra(ROOM_INFO);
         roomSdkNo = Integer.parseInt(meetingBean.getSdk_no());
+        videoH = 720;
+        videoW = 1280;
+        bitRate = 900;
         trackServer = intent.getStringExtra(Constants.DEBUG_ADDR);
         openDebug = intent.getBooleanExtra(Constants.DEBUG_SWITCH, false);
-        isMulti = intent.getBooleanExtra(Constants.MULTI, false);
-        agc = Integer.parseInt(intent.getStringExtra(Constants.AGC));
-        aec = Integer.parseInt(intent.getStringExtra(Constants.AEC));
-        fps = Integer.parseInt(intent.getStringExtra(Constants.FPS));
+
         closeOtherAudio = intent.getBooleanExtra(Constants.CLOSE_OTHER_AUDIO, false);
         closeOtherVideo = intent.getBooleanExtra(Constants.CLOSE_OTHER_VIDEO, false);
         isSendSelfVideo = !intent.getBooleanExtra(Constants.CLOSE_SELF_VIDEO, true);
         isSendSelfAudio = !intent.getBooleanExtra(Constants.CLOSE_SELF_AUDIO, true);
+        isMulti = intent.getBooleanExtra(Constants.MULTI, true);
 
-        level = intent.getIntExtra(Constants.VIDEO_LEVEL, 0);
-
-        if (level == 0) {
-            videoH = 480;
-            videoW = 640;
-            bitRate = 512;
-        } else {
-            videoH = 720;
-            videoW = 1280;
-            bitRate = 900;
-        }
-
-        sampleRate = intent.getIntExtra(Constants.SAMPLE_RATE, 48000);
-
-        hardDecoder = intent.getBooleanExtra(Constants.HARD_DECODER, false);
 
         windowAdapter = new WindowAdapter(MeetingActivity.this);
         windowRcView.setAdapter(windowAdapter);
         windowRcView.getRecycledViewPool().setMaxRecycledViews(0, 0);
         windowRcView.setLayoutManager(new GridLayoutManager(this, spanCount));
-
-        nameTv.setText(UserConfig.getUserInfo().getData().getAccount().getRoom().getSdk_no());
-
+        nameTv.setText(meetingBean.getSdk_no());//UserConfig.getUserInfo().getData().getAccount().getRoom().getSdk_no()修改过
         windowAdapter.setOnItemClickListener((view, memberBean) -> {
             clickWindow(memberBean);
         });
@@ -677,22 +688,103 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     @Override
     protected void onResume() {
         super.onResume();
-        if (roomClient != null){
-            roomClient.onResumeCamera();
+//        if (roomClient != null) {
+//            roomClient.onResumeCamera();
+//        }
+    }
+
+    /**
+     * 设置MCU录制轨道
+     * @param isMainStream  是否录制大码流 true:大码流    false:小码流
+     */
+    private void updateMCUTrack(boolean isMainStream){
+        int streamSize = roomClient.getAccount().getStreamsList().size();
+        switch (streamSize){
+            case 0://没有配置过发送流，返回不设置
+                return;
+            case 1://只配置了一路流
+                roomClient.setMCUTrack(1);//默认去取第一个轨道
+                break;
+            default://配置了多路流
+                boolean isSet = false;
+                for (Models.Stream stream : roomClient.getAccount().getStreamsList()){
+                    if (stream.getChannelType() == Models.ChannelType.CT_Default){//默认视频轨道类型
+                        if (isMainStream){
+                            if (stream.getType() == Models.StreamType.Stream_Main){//大码流
+                                roomClient.setMCUTrack(stream.getId());
+                                isSet = true;
+                                break;
+                            }
+                        }else {
+                            if (stream.getType() == Models.StreamType.Stream_Sub){//大码流
+                                roomClient.setMCUTrack(stream.getId());
+                                isSet = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!isSet){//如果没找到设置，默认取第一轨道
+                    roomClient.setMCUTrack(1);
+                }
+                break;
         }
     }
 
     //初始化API
     private void initVcsApi() {
+        Log.e("seminarMode:",meetingBean.isSeminarMode() + "");
         //开启track 调试
         if (openDebug) {
             roomClient = new RoomClient(this, roomSdkNo, trackServer);
         } else {
-            roomClient = new RoomClient(this, roomSdkNo, "", true, true);
-//            roomClient = new RoomClient(this, roomSdkNo);
+            roomClient = new RoomClient(this, roomSdkNo, "", true, meetingBean.isSeminarMode());
         }
-
         roomClient.setRoomEvent(this);//设置会议回调
+//        roomClient.setAudioCurrentModeCallback(new IAudioModeListener() {
+//            @Override
+//            public void OnAudioModeInfo(int i) {
+//                Log.e("3333333333", "setAudioCurrentModeCallback:  " + i);
+//            }
+//        });
+
+        /**
+         * 手机版本：vcs：1.2.5-stream-status-1
+         * 盒子版本：vcs-tv-fh:1.0.6-86-stream-status-1
+         * RoomClient新增流媒体状态回调设置方法
+         */
+        roomClient.setStreamStatusEvent(new StreamStatusEvent() {
+            @Override
+            public void onStreamConnected(boolean connect) {//入会后第一次连接状态回调,true:成功 false:失败
+
+            }
+
+            @Override
+            public void onStreamDisconnect() {//中途断开
+
+            }
+
+            @Override
+            public void onStreamReconnected() {//发生了重连
+
+            }
+        });
+
+        roomClient.setAudioStatusCallbackGap(1000);
+        roomClient.setAudioStatusCallback(new AudioStatusCallback() {
+            @Override
+            public void onAudioStatus(List<AudioStatusBean> data) {
+                for (AudioStatusBean statusBean : data){
+//                    Log.e("xxxxxxx", statusBean.toString());
+                }
+            }
+
+            @Override
+            public void onSpeechStatus(boolean speech) {
+
+            }
+        });
+
         shareAccId = UserConfig.getUserInfo().getData().getAccount().getId();
 
         roomClient.setAccount(
@@ -703,33 +795,54 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
                 UserConfig.getUserInfo().getData().getAccount().getPortrait());
         roomClient.setRoom(meetingBean.getRoom().getId(), roomSdkNo, meetingBean.getSession());
         roomClient.setStreamAddr(meetingBean.getStream_host(), meetingBean.getStream_port());
-        roomClient.setMeetingAddr(meetingBean.getMeeting_host(), meetingBean.getMeeting_port());
 
-        roomClient.setMqttServerId(meetingBean.getMeeting_server_id(), meetingBean.getRoom().getId());
+        roomClient.setMqttServerId(meetingBean.getMeeting_server_id(), meetingBean.getRoom().getId(), new MqttConnectStatusImpl() {
+            @Override
+            public void connectionLost(Throwable throwable) {
 
+            }
 
-        roomClient.setSoft3A(true);//音频优化
+            @Override
+            public void connectComplete(boolean reconnect, String serverURI) {
 
-        //测试用，保存流信息
-//        roomClient.saveDebugStream();
+            }
+
+            @Override
+            public void subscribeCtrlTopicFailure(String topic, Throwable throwable) {
+            }
+
+            @Override
+            public void subscribeCtrlTopicSuccess(String topic) {
+            }
+        });
 
         roomClient.useMultiStream(isMulti);//设置开启多流
         roomClient.setMinEncoderSoft(false);//在setVideoOutput前设置
-
-        roomClient.setResolutionSize(videoW, videoH);//预览分辨率
+//        roomClient.setResolutionSize(videoW, videoH);
         //输出分辨率宽必须是16的倍数,高必须是2的倍数,否则容易出现绿边等问题
-        roomClient.setVideoOutput(videoW, videoH, fps, bitRate);//设置视频分辨率宽高，帧率，码率
         //小码流高（会根据setVideoOutput设置的宽高自动计算宽，一定要放在setVideoOutput方法之前设置），码流，帧率
 //        roomClient.setMinVideoOutput(360, 500, 15);
+        roomClient.setVideoOutput(videoW, videoH, fps, bitRate);//设置视频分辨率宽高，帧率，码率Kb
+        int sampleRate = 48000;
         roomClient.setAudioSampleRate(sampleRate);//设置采样率
+        //自动增益
+        int agc = 10000;
+        //回音消除
+        int aec = 12;
         roomClient.setAgcAec(agc, aec);//设置AGC,AEC
         roomClient.setFps(fps);//设置帧率
-
-        roomClient.openCamera(null, this);//设置预览view
-
+        roomClient.openCamera(null, isSendSelfVideo, this);//设置预览view
         roomClient.enableXDelay(true);//自适应延迟
+        boolean hardDecoder = true;
         roomClient.useHwDecoder(hardDecoder);//是否硬解码
 
+        selfMember = new MemberBean();
+        selfMember.setAccountId(UserConfig.getUserInfo().getData().getAccount().getId());
+        selfMember.setSdkNo(Integer.parseInt(UserConfig.getUserInfo().getData().getAccount().getRoom().getSdk_no()));
+        selfMember.setMute(isSendSelfAudio ? Models.DeviceState.DS_Active : Models.DeviceState.DS_Closed);
+        selfMember.setCloseVideo(isSendSelfVideo ? Models.DeviceState.DS_Active : Models.DeviceState.DS_Closed);
+
+        mainWindowMember = selfMember;
         if (isSendSelfAudio) {
             roomClient.setDefaultSendSelfAudio(true);
             closeSelfAudioBtn.setText("关闭自己的音频");
@@ -748,18 +861,10 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
             closePreviewTv.setVisibility(View.VISIBLE);
         }
 
-        selfMember = new MemberBean();
-        selfMember.setAccountId(UserConfig.getUserInfo().getData().getAccount().getId());
-        selfMember.setSdkNo(Integer.parseInt(UserConfig.getUserInfo().getData().getAccount().getRoom().getSdk_no()));
-        selfMember.setMute(isSendSelfAudio ? Models.DeviceState.DS_Active : Models.DeviceState.DS_Closed);
-        selfMember.setCloseVideo(isSendSelfVideo ? Models.DeviceState.DS_Active : Models.DeviceState.DS_Closed);
-
-        mainWindowMember = selfMember;
-
         roomClient.open();
     }
 
-    public void streamKickOut(String accId){
+    public void streamKickOut(String accId) {
         roomClient.streamKickOut(accId);
     }
 
@@ -769,9 +874,9 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     private void clickWindow(MemberBean memberBean) {
         if (windowAdapter != null) {
             WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(memberBean.getSdkNo());
-            if (mainWindowMember == memberBean){//点击的小窗口正显示在大窗口
+            if (mainWindowMember == memberBean) {//点击的小窗口正显示在大窗口
                 mainWindowMember = selfMember;
-            }else {
+            } else {
                 updateViewInfoSmallOld(mainWindowMember);//恢复原先小窗口的信息，用先前的memberBean
                 mainWindowMember = memberBean;
             }
@@ -783,8 +888,8 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     /**
      * 更新主画面的状态信息，昵称，音视频状态等
      */
-    private void updateViewInfo(){
-        if (mainWindowMember == null){
+    private void updateViewInfo() {
+        if (mainWindowMember == null) {
             return;
         }
 
@@ -796,31 +901,31 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     /**
      * 更新小窗口的状态信息
      */
-    private void updateViewInfoSmall(MemberBean memberBean, WindowAdapter.MyViewHolder holder){
-        if (holder == null){
+    private void updateViewInfoSmall(MemberBean memberBean, WindowAdapter.MyViewHolder holder) {
+        if (holder == null) {
             return;
         }
-        if (mainWindowMember != selfMember){//大窗口不是预览，小窗口显示自己的
+        if (mainWindowMember != selfMember) {//大窗口不是预览，小窗口显示自己的
             holder.nameTv.setText(roomClient.getAccount().getStreamId() + "");
             holder.selfCloseTv.setText(roomClient.getAccount().getStreamId() + "\n" + "视频已关闭");
             holder.selfCloseTv.setVisibility(selfMember.isCloseVideo() ? View.VISIBLE : View.GONE);
 
             //大窗口设置大流
             Models.Account account = roomClient.getAccountList().get(mainWindowMember.getSdkNo());
-            if (account != null){
-                if (account.getTerminalType() == Models.TerminalType.Terminal_Embedded){
-                    for (Models.Stream stream : account.getStreamsList()){
-                        if (stream.getId() == 1){//取id=1的流为默认流
+            if (account != null) {
+                if (account.getTerminalType() == Models.TerminalType.Terminal_Embedded) {
+                    for (Models.Stream stream : account.getStreamsList()) {
+                        if (stream.getId() == 1) {//取id=1的流为默认流
                             roomClient.pickStream(account.getId(), stream.getChannel(), stream.getChannelType(), Models.StreamType.Stream_Main);
                             break;
                         }
                     }
-                }else {
+                } else {
                     roomClient.pickStreamMain(account.getId());
                 }
             }
         } else {
-            if (memberBean == null){
+            if (memberBean == null) {
                 return;
             }
             holder.nameTv.setText(memberBean.getSdkNo() + "");
@@ -829,15 +934,15 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
 
             //恢复为小码流
             Models.Account account = roomClient.getAccountList().get(memberBean.getSdkNo());
-            if (account != null){
-                if (account.getTerminalType() == Models.TerminalType.Terminal_Embedded){//录播主机
-                    for (Models.Stream stream : account.getStreamsList()){
-                        if (stream.getId() == 1){
+            if (account != null) {
+                if (account.getTerminalType() == Models.TerminalType.Terminal_Embedded) {//录播主机
+                    for (Models.Stream stream : account.getStreamsList()) {
+                        if (stream.getId() == 1) {
                             roomClient.pickStream(account.getId(), stream.getChannel(), stream.getChannelType(), Models.StreamType.Stream_Sub);
                             break;
                         }
                     }
-                }else {
+                } else {
                     roomClient.pickStreamSub(account.getId());
                 }
             }
@@ -847,12 +952,12 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     /**
      * 恢复原先小窗口的信息
      */
-    private void updateViewInfoSmallOld(MemberBean memberBean){
-        if (memberBean == null){
+    private void updateViewInfoSmallOld(MemberBean memberBean) {
+        if (memberBean == null) {
             return;
         }
         WindowAdapter.MyViewHolder holder = windowAdapter.getHolders().get(memberBean.getSdkNo());
-        if (holder != null){
+        if (holder != null) {
             holder.nameTv.setText(memberBean.getSdkNo() + "");
             holder.selfCloseTv.setText(memberBean.getSdkNo() + "\n" + "视频已关闭");
             holder.selfCloseTv.setVisibility(memberBean.isCloseVideo() ? View.VISIBLE : View.GONE);
@@ -860,15 +965,15 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
         }
         //恢复小流
         Models.Account account = roomClient.getAccountList().get(memberBean.getSdkNo());
-        if (account != null){
-            if (account.getTerminalType() == Models.TerminalType.Terminal_Embedded){
-                for (Models.Stream stream : account.getStreamsList()){
-                    if (stream.getId() == 1){
+        if (account != null) {
+            if (account.getTerminalType() == Models.TerminalType.Terminal_Embedded) {
+                for (Models.Stream stream : account.getStreamsList()) {
+                    if (stream.getId() == 1) {
                         roomClient.pickStream(account.getId(), stream.getChannel(), stream.getChannelType(), Models.StreamType.Stream_Sub);
                         break;
                     }
                 }
-            }else {
+            } else {
                 roomClient.pickStreamSub(account.getId());
             }
         }
@@ -876,35 +981,18 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
 
     @Override
     protected void onDestroy() {
-        if (boardFl.getVisibility() == View.VISIBLE){
-            hideBoard();
-        }
+//        Utils.cancelNotification();
+
         if (roomClient != null) {
             roomClient.close();//退出释放
         }
         if (mForegroundService != null){
             stopService(mForegroundService);
         }
-        MyApplication.isMeeting = false;
         super.onDestroy();
     }
 
-    //闪光灯开关
-    private void switchLight() {
-        if (isFront) {
-            ToastUtil.getInstance().showLongToast("后置摄像头才能开启闪光灯");
-            return;
-        }
-        isLight = !isLight;
-        roomClient.cameraLight(isLight);
-        if (isLight) {
-            cameraLightBtn.setText("关闪光灯");
-        } else {
-            cameraLightBtn.setText("开闪光灯");
-        }
-    }
-
-    //切换摄像头下·
+    //切换摄像头
     private void switchCamera() {
         roomClient.switchCamera(isFront);
         isFront = !isFront;
@@ -930,14 +1018,10 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
         roomClient.hostKickOut(id);
     }
 
-    //主持人会控
-    public void hostCtrlMember(String acc, Models.DeviceState video, Models.DeviceState audio) {
-//        roomClient.hostCtrl(acc, video, audio);
-    }
-
     //掩码方式
     public void useChannel(int sdkNo, int mask) {
-        roomClient.setStreamTrackAsync(sdkNo, mask);
+        roomClient.setStreamTrack(sdkNo, mask);
+//        roomClient.pickStreamMain(sdkNo);
     }
 
     //设置自己的视频，是否发送
@@ -949,7 +1033,6 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
         } else {
             Models.Account account = roomClient.getAccount();
             if (account.getVideoState() == Models.DeviceState.DS_Disabled) {
-                ToastUtil.getInstance().showLongToast("当前被主持人关闭，不可操作");
                 return;
             }
             isSendSelfVideo = account.getVideoState() != Models.DeviceState.DS_Active;
@@ -985,7 +1068,6 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
         } else {
             Models.Account account = roomClient.getAccount();
             if (account.getAudioState() == Models.DeviceState.DS_Disabled) {
-                ToastUtil.getInstance().showLongToast("当前被主持人禁言，不可操作");
                 return;
             }
             isSendSelfAudio = account.getAudioState() != Models.DeviceState.DS_Active;
@@ -1005,17 +1087,17 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
         }
     }
 
-    public void changeSize(){
+    public void changeSize() {
         int width, height;
 
-        if (isLand){
-            height = (DisplayUtil.getInstance().getMobileWidth(this)/spanCount) * 9 / 16;
-        }else {
-            height = (DisplayUtil.getInstance().getMobileWidth(this)/spanCount) * 16 / 9;
+        if (isLand) {
+            height = (DisplayUtil.getInstance().getMobileWidth(this) / spanCount) * 9 / 16;
+        } else {
+            height = (DisplayUtil.getInstance().getMobileWidth(this) / spanCount) * 16 / 9;
         }
-        width = DisplayUtil.getInstance().getMobileWidth(this)/spanCount;
+        width = DisplayUtil.getInstance().getMobileWidth(this) / spanCount;
 
-        for (WindowAdapter.MyViewHolder holder : windowAdapter.getHolders().values()){
+        for (WindowAdapter.MyViewHolder holder : windowAdapter.getHolders().values()) {
             holder.frameLayout.setLayoutParams(new ConstraintLayout.LayoutParams(width, height));
         }
     }
@@ -1031,59 +1113,98 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
     Intent floatIntent;
     public boolean isLand = true;
 
+    /**
+     * 跳转画中画权限界面
+     */
+    public static void startPiPSettingsActivity(Context context) {
+        try {
+            context.startActivity(new Intent("android.settings.PICTURE_IN_PICTURE_SETTINGS", Uri.parse("package:" + context.getPackageName())));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * 进入画中画模式
+     */
+    private PictureInPictureParams.Builder mPictureInPictureParamsBuilder;
+    private void enterPiPMode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (mPictureInPictureParamsBuilder == null) {
+                mPictureInPictureParamsBuilder = new PictureInPictureParams.Builder();
+            }
+            // Calculate the aspect ratio of the PiP screen. 计算video的纵横比
+//            mVideoWith = videoPlayer.getCurrentVideoWidth();
+//            mVideoHeight = videoPlayer.getCurrentVideoHeight();
+//            if (mVideoWith != 0 && mVideoHeight != 0) {
+//                //设置param宽高比,根据宽高比例调整初始参数
+//                Rational aspectRatio = new Rational(mVideoWith, mVideoHeight);
+//                mPictureInPictureParamsBuilder.setAspectRatio(aspectRatio);
+//            }
+            //进入pip模式
+            enterPictureInPictureMode(mPictureInPictureParamsBuilder.build());
+        }
+    }
+    //闪光灯开关
+    private void switchLight() {
+        if (isFront) {
+            ToastUtil.getInstance().showLongToast("后置摄像头才能开启闪光灯");
+            return;
+        }
+        isLight = !isLight;
+        roomClient.cameraLight(isLight);
+        if (isLight) {
+            cameraLightBtn.setText("关闪光灯");
+        } else {
+            cameraLightBtn.setText("开闪光灯");
+        }
+    }
     @SuppressLint("SourceLockedOrientationActivity")
-    @OnClick({R.id.rec_btn, R.id.send_msg_btn, R.id.camera_switch_btn,
+    @OnClick({R.id.send_msg_btn, R.id.camera_switch_btn,R.id.rec_btn,R.id.change_orientation_btn,
             R.id.camera_light_btn, R.id.close_self_video_btn, R.id.close_self_audio_btn,
-            R.id.not_recv_audio_btn, R.id.not_recv_video_btn, R.id.change_orientation_btn,
-            R.id.closeBoardBtn, R.id.bgBtn, R.id.openBoardImgBtn, R.id.openBoardBtn})
+            R.id.not_recv_audio_btn, R.id.not_recv_video_btn})
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.openBoardBtn:
-                roomClient.startToShare(Models.SharingType.ST_WhiteBoard, "");
-                break;
-            case R.id.openBoardImgBtn:
-                roomClient.startToShare(Models.SharingType.ST_Picture, "https://tenfei01.cfp.cn/creative/vcg/nowarter800/new/VCG41688057449.jpg");
-                break;
-            case R.id.closeBoardBtn:
-                if (!shareAccId.equals(roomClient.getAccount().getId())) {
-                    //不是当前白板发起人，无法关闭
-                    ToastUtil.getInstance().showLongToast("您没有权限完成此操作");
-                    return;
-                }
-                roomClient.stopToShare();
-
-            case R.id.bgBtn:
-                GlideUtil.showImage(this, "https://tenfei01.cfp.cn/creative/vcg/nowarter800/new/VCG41688057449.jpg", drawFrameLayout.getBackView());
-                break;
-            case R.id.rec_btn:
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (PermissionUtil.getInstance().isGrandFloating(this)) {
-                        startRecord();
-                    } else {
-                        PermissionUtil.getInstance().setPermissionFloat(this, success -> {
-                            //成功授权
-                            if (success) {
-                                startRecord();
-                            }
-                        });
-                    }
-                } else {
-                    //没有悬浮按钮
-                    startRecord();
-                }
-                break;
-            case R.id.camera_light_btn://闪光灯开关
-                switchLight();
-                break;
-            case R.id.camera_switch_btn://切换摄像头
-                switchCamera();
-                break;
             case R.id.change_orientation_btn:
                 if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {//当前是横屏
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);//竖屏
                 } else {//当前是竖屏
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//横屏
                 }
+                break;
+            case R.id.rec_btn:
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                    if (PermissionUtil.getInstance().isGrandFloating(this)) {
+//                        startRecord();
+//                    } else {
+//                        PermissionUtil.getInstance().setPermissionFloat(this, success -> {
+//                            //成功授权
+//                            if (success) {
+//                                startRecord();
+//                            }
+//                        });
+//                    }
+//                } else {
+//                    //没有悬浮按钮
+//                    startRecord();
+//                }
+                startRecord();
+                break;
+            case R.id.camera_light_btn://闪光灯开关
+//                boolean isSupportPipMode = getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
+//                if (isSupportPipMode){
+//                    enterPiPMode();
+//                }else {
+//                    startPiPSettingsActivity(this);
+//                    ToastUtil.getInstance().showShortToast("不支持画中画");
+//                }
+//                switchLight();
+                roomClient.switchRouter(AudioRouterMenu.BLUETOOTH);
+                break;
+            case R.id.camera_switch_btn://切换摄像头
+//                switchCamera();
+                roomClient.switchRouter(AudioRouterMenu.SPEAKER);
                 break;
             case R.id.close_self_video_btn://设置自己的视频，是否发送
                 closeSelfVideo(false, null);
@@ -1105,7 +1226,6 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
                 windowAdapter.notifyDataSetChanged();
                 break;
             case R.id.not_recv_video_btn://不接收所有人视频
-
                 isRecvVideo = !isRecvVideo;
                 roomClient.enableRecvVideo(0, isRecvVideo);
                 if (isRecvVideo) {
@@ -1119,16 +1239,24 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
                 windowAdapter.notifyDataSetChanged();
                 break;
             case R.id.send_msg_btn:
-                roomClient.sendChatMsg(null, "你好");
+//                roomClient.switchRouter(VCS_EVENT_TYPE.SPEAKER_ROUTER);
+//                roomClient.sendChatMsg(null, "你好");
+                roomClient.setSpeakerOn(true);
+//                Log.e("ssssssssss", "startFocus:"+AudioFocusHelper.getInstance(this).startFocus());
                 break;
         }
     }
 
-    public void startRecord() {
-        if (roomClient.isBusyRecording()) {
-            roomClient.stopScreenRecording();//停止录屏
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode);
+        if (isInPictureInPictureMode) {
+            Log.e("aaaaaaa", "Hide the full-screen UI");
+
+            // Hide the full-screen UI (controls, etc.) while in picture-in-picture mode.
         } else {
-            roomClient.startScreenRecording();//开始录屏
+            // Restore the full-screen UI.
+            Log.e("aaaaaaa", "Restore the full-screen UI");
         }
     }
 
@@ -1141,8 +1269,10 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
         roomClient.initScreenRecorder(true,1200, 10, 1280, 720);
         //设置录屏时通知栏样式,shouldNotification = true时有效
         roomClient.setRecordNotification(R.mipmap.ic_launcher, "正在共享屏幕", "点击按钮结束录制", "停止录制");
+        //设置录屏大小如果不采用编码方式那么这个大小应该和VCS_CreateVideoOutput 设置大小保持一致，编码方式那么就是自己設置【最大值1920x1080】
 
         roomClient.setScreenRecordListener((event, info) -> {
+            Log.e("recording", "event:" + event + "   info:" + info + "   treahd:" + Thread.currentThread().getName());
             switch (event) {
                 case VCS_EVENT_TYPE.ScreenRecordError:
 //                    ToastUtil.getInstance().showLongToast(info);
@@ -1168,86 +1298,15 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
         });
     }
 
-    private void initBoard(boolean isImg, String img) {
-        String address = null;
-        int port = 0;
-        if (!meetingBean.getWb_host().contains(":")){
-            return;
-        }
-
-        try {
-            address = meetingBean.getWb_host().split(":")[0];
-            port = Integer.parseInt(meetingBean.getWb_host().split(":")[1]);
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-        }
-
-        if (address == null){
-            return;
-        }
-        drawFrameLayout.setCustomImgShow(true);//开启自定义显示图片显示模式
-
-        if (isImg){
-            Glide.with(this)
-                    .asBitmap()
-                    .load(img)
-                    .into(new SimpleTarget<Bitmap>() {
-                        @Override
-                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                            float ratio = (float) (resource.getWidth() * 1.0 / resource.getHeight());
-                            drawFrameLayout.start(
-                                    meetingBean.getWb_host().split(":")[0],
-                                    Integer.parseInt(meetingBean.getWb_host().split(":")[1]),
-                                    meetingBean.getRoom().getNo(),
-                                    UserConfig.getUserInfo().getData().getAccount().getId(),
-                                    ratio,
-                                    true);//是否可写
-                            drawFrameLayout.setDrawToolBarShow(false);
-//                            drawFrameLayout.updateSize(ctlMeetingCenter.getWidth(), ctlMeetingCenter.getHeight());
-                            drawFrameLayout.getBackView().setImageBitmap(resource);//模式设置上层显示图片
-                        }
-                        @Override
-                        public void onLoadFailed(@Nullable Drawable errorDrawable) {
-                            super.onLoadFailed(errorDrawable);
-                            ToastUtil.getInstance().showLongToast("图片加载失败");
-
-                            float ratio = (float) ((DisplayUtil.getInstance().getMobileWidth(MeetingActivity.this) * 1.0)/DisplayUtil.getInstance().getMobileHeight(MeetingActivity.this));
-                            drawFrameLayout.start(
-                                    meetingBean.getWb_host().split(":")[0],
-                                    Integer.parseInt(meetingBean.getWb_host().split(":")[1]),
-                                    meetingBean.getRoom().getNo(), UserConfig.getUserInfo().getData().getAccount().getId(), ratio, true);
-                        }
-                    });
-        }else {
-            float ratio = (float) ((DisplayUtil.getInstance().getMobileWidth(this) * 1.0)/DisplayUtil.getInstance().getMobileHeight(this));
-            drawFrameLayout.start(address, port, meetingBean.getRoom().getNo(), UserConfig.getUserInfo().getData().getAccount().getId(), ratio, true);
+    public void startRecord() {
+        if (roomClient.isBusyRecording()) {
+            roomClient.stopScreenRecording();//停止录屏
+        } else {
+            roomClient.startScreenRecording();//开始录屏
         }
     }
 
-    private void loadBoard(boolean isImg) {
-        initBoard(isImg, null);
-        boardFl.setVisibility(View.VISIBLE);
-    }
-
-    private void loadBoardImg(String isImg) {
-        initBoard(true, isImg);
-        boardFl.setVisibility(View.VISIBLE);
-    }
-
-    /**
-     * 拷贝url
-     *
-     * @param str    字符串
-     */
-    public void copyUrl(final String str) {
-        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        clipboardManager.setPrimaryClip(ClipData.newPlainText(null, str));
-    }
-
-    private void hideBoard() {
-        boardFl.setVisibility(View.GONE);
-        drawFrameLayout.close();
-    }
+    boolean shot = false;
 
     @Override
     public void onPreviewFrame(byte[] yuv, int width, int height, long stamp, int format, int angle) {
@@ -1256,7 +1315,7 @@ public class MeetingActivity extends PermissionActivity implements RoomEvent, Ca
             vcsPlayerGlSurfaceView.update(width, height, format);
             vcsPlayerGlSurfaceView.update(yuv, format);
             vcsPlayerGlSurfaceView.setLANDSCAPE(angle);
-            vcsPlayerGlSurfaceView.setCameraId(isFront ? 1 :0);
+            vcsPlayerGlSurfaceView.setCameraId(isFront ? 1 : 0);
         }
     }
 }
